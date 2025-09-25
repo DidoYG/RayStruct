@@ -41,4 +41,3 @@ bool PopulateMenuController::visualize() const {
 // sanitize the input to convert it into a list of numbers
 // make the call when the visualize button is clicked
 // make a separate menu for file path input with a validate path button and dynamic text showing if the path is valid or not
-// start git repo and push changes
