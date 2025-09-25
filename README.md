@@ -4,7 +4,7 @@ RayStruct++ is a C++ desktop application for visualizing data structures and alg
 
 Users can choose from three levels of data structures — List, Binary Tree, and Graph — and apply classic algorithms to see how they operate step by step.
 
-Features:
+1. Features:
 
 Interactive menu system for selecting structures and algorithms
 
@@ -16,7 +16,7 @@ Support for custom user-defined code (upload your own structures and algorithms)
 
 Built with C++ and raylib for portability and performance
 
-Included Structures & Algorithms:
+2. Included Structures & Algorithms:
 
 List: Traversal, Insertion Sort, Merge Sort
 
@@ -24,6 +24,6 @@ Binary Tree: BFS, Inorder Traversal, Deletion
 
 Graph: Dijkstra, Prim’s, Topological Sort
 
-Purpose:
+3. Purpose:
 
 RayStruct++ is both an educational tool for students learning algorithms and a sandbox for developers who want to experiment with custom implementations. It demonstrates object-oriented design, algorithmic thinking, and visualization techniques while adhering to solid software engineering practices.
