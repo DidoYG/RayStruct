@@ -34,10 +34,28 @@ bool PopulateMenuController::shouldGoBack() {
     }
 }
 
-bool PopulateMenuController::visualize() const {
-    return visualizeButton.wasClicked(); // make it return the list of numbers to the app controller
-}
+std::vector<int> PopulateMenuController::parseInput() const {
+    std::vector<int> numbers;
+    std::string input = inputField.getText();
+    std::string currentNumber;
 
-// sanitize the input to convert it into a list of numbers
-// make the call when the visualize button is clicked
-// make a separate menu for file path input with a validate path button and dynamic text showing if the path is valid or not
+    if (visualizeButton.wasClicked()) {
+        for (char ch : input) {
+            if (isdigit(ch) || (ch == '-' && currentNumber.empty())) {
+                currentNumber += ch; // build the current number
+            } else if (ch == ' ' || ch == ',') {
+                if (!currentNumber.empty()) {
+                    numbers.push_back(std::stoi(currentNumber)); // convert to int and add to list
+                    currentNumber.clear(); // reset for next number
+                }
+            }
+        }
+
+        // Add the last number if there's any
+        if (!currentNumber.empty()) {
+            numbers.push_back(std::stoi(currentNumber));
+        }
+    }
+
+    return numbers;
+}

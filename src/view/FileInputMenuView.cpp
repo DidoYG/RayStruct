@@ -1,8 +1,8 @@
-// src/view/ChoiceMenuView.cpp
-#include "view/ChoiceMenuView.h"
+// src/view/FileInputMenuView.cpp
+#include "view/FileInputMenuView.h"
 #include "raylib.h"
 
-void ChoiceMenuView::draw(const std::string& title) {
+void FileInputMenuView::draw(const std::string& title) {
     int fontSize = 40;
     int textWidth = MeasureText(title.c_str(), fontSize);
 

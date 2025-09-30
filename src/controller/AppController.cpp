@@ -4,6 +4,7 @@
 
 AppController::AppController()
 : isAtAlgorithms(false), 
+  isValidPath(false),
   state(AppState::MAIN_MENU),
   selectedStructure(DataStructure::NONE),
   selectedAlgorithm(Algorithm::NONE) {}
@@ -49,7 +50,7 @@ void AppController::update() {
             }
 
             if (selectedStructure == DataStructure::CUSTOM) {
-                state = AppState::CUSTOM_MENU;
+                state = AppState::FILE_INPUT_MENU;
                 break;
             }
             
@@ -70,18 +71,49 @@ void AppController::update() {
                 selectedAlgorithm = Algorithm::NONE;
             }
 
-            // if (populateMenu.visualize()) {
-            //     state = AppState::VISUALIZATION_MENU;
-            // }
+            numbers = populateMenu.parseInput();
+
+            if (!numbers.empty()) {
+                state = AppState::VISUALIZATION_MENU;
+                visualizationMenu.setNumbers(numbers);
+                visualizationMenu.setSelectedStructure(selectedStructure);
+                visualizationMenu.setSelectedAlgorithm(selectedAlgorithm);
+            }
 
             break;
         
-        case AppState::CUSTOM_MENU: 
-            populateMenu.update(); // temporary
-            if (populateMenu.shouldGoBack()) {
+        case AppState::VISUALIZATION_MENU:
+            visualizationMenu.update(); // temporary
+            if (visualizationMenu.shouldGoBack()) {
+                state = AppState::POPULATE_MENU;
+                numbers.clear();
+            }
+
+            break;
+
+        case AppState::FILE_INPUT_MENU: 
+            fileInputMenu.update();
+            if (fileInputMenu.shouldGoBack()) {
+                isValidPath = false;
+                path = "";
                 state = AppState::CHOICE_MENU;
                 selectedStructure = DataStructure::NONE;
             }
+
+            if (fileInputMenu.shouldValidate()) {
+                isValidPath = fileInputMenu.validateInput();
+                if (isValidPath) {
+                    path = fileInputMenu.getInput();
+                }
+            }
+
+            if (isValidPath) {
+                if (fileInputMenu.uploadFile()) {
+                    state = AppState::POPULATE_MENU; // temporary
+                    isValidPath = false;
+                }
+            }
+
             break;
 
         case AppState::EXIT:
@@ -102,9 +134,13 @@ void AppController::draw() {
         case AppState::POPULATE_MENU:
             populateMenu.draw();
             break;
+        
+        case AppState::VISUALIZATION_MENU:
+            visualizationMenu.draw(); // temporary
+            break;
 
-        case AppState::CUSTOM_MENU:
-            populateMenu.draw(); // temporary
+        case AppState::FILE_INPUT_MENU:
+            fileInputMenu.draw();
             break;
         
         case AppState::EXIT:

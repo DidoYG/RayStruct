@@ -1,8 +1,14 @@
-// src/view/ChoiceMenuView.cpp
-#include "view/ChoiceMenuView.h"
+// src/view/VisualizationMenuView.cpp
+#include "view/VisualizationMenuView.h"
 #include "raylib.h"
 
-void ChoiceMenuView::draw(const std::string& title) {
+void VisualizationMenuView::draw(std::vector<int> numbers) { // temporary
+    std::string title = "";
+
+    for (int num : numbers) {
+        title += std::to_string(num) + " ";
+    }
+
     int fontSize = 40;
     int textWidth = MeasureText(title.c_str(), fontSize);
 

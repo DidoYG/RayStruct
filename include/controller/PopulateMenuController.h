@@ -3,6 +3,7 @@
 #include "controller/ButtonController.h"
 #include "controller/InputFieldController.h"
 #include "view/PopulateMenuView.h"
+#include "vector"
 
 class PopulateMenuController {
 private:
@@ -23,5 +24,5 @@ public:
     void draw();
 
     bool shouldGoBack();
-    bool visualize() const;
+    std::vector<int> parseInput() const;
 };

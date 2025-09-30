@@ -4,7 +4,7 @@
 CXX=g++
 
 # Compile flags
-CXXFLAGS="-std=c++11 -Wall -Iinclude"
+CXXFLAGS="-std=c++17 -Wall -Iinclude"
 
 # Raylib and system libraries (for Linux)
 LIBS="-lraylib -lGL -lm -lpthread -ldl -lrt -lX11"
