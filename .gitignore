@@ -6,7 +6,9 @@
 *.out
 *.o
 *.obj
-*.
+
+# Ignore the compiled executable
+RayStruct++
 
 # Ignore build folders
 build/
