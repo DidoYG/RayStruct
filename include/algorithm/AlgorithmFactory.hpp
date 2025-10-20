@@ -5,6 +5,7 @@
 #include "InsertionSort.hpp"
 #include "MergeSort.hpp"
 #include "HeapBuild.hpp"
+#include "HeapSelection.hpp"
 
 class AlgorithmFactory {
 public:

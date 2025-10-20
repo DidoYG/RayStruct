@@ -13,7 +13,7 @@ Algorithm* AlgorithmFactory::createAlgorithm(AlgorithmEnum type) {
             return new HeapBuild();
             break;
         case AlgorithmEnum::HEAP_SELECTION:
-            //return new MergeSort();
+            return new HeapSelection();
             break;
         case AlgorithmEnum::A_STAR: 
             // return new GraphAStar();

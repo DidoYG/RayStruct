@@ -73,35 +73,17 @@ void HeapBuild::display(const std::vector<int>& elements) {
 
 void HeapBuild::execute(DataStructure* ds) {
     std::vector<int> elements = ds->getElements();
-    std::string heapType;
-    isMinHeap = false;
-
-    while (true) {
-        std::cout << "\nSelect heap type:\n"
-                     "1. min\n"
-                     "2. max\n"
-                     ">>> ";
-        std::cin >> heapType;
-
-        if (heapType == "1" || heapType == "min") {
-            isMinHeap = true;
-            break;
-        } else if (heapType == "2" || heapType == "max") {
-            isMinHeap = false;
-            break;
-        } else {
-            std::cout << "\nInvalid option. Please enter 1 or 2.\n";
-        }
-    }
-
     buildHeap(elements, isMinHeap);
 }
 
 void HeapBuild::executeAndDisplay(DataStructure* ds) {
     std::vector<int> elements = ds->getElements();
-    std::string heapType;
 
     display(elements);
-    buildHeap(elements, isMinHeap);
+    buildHeapVisual(elements, isMinHeap);
     display(elements);
+}
+
+void HeapBuild::setHeapType(bool type) {
+    isMinHeap = type;
 }

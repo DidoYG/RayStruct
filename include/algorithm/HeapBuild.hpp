@@ -3,7 +3,7 @@
 #include "../model/Algorithm.hpp"
 
 class HeapBuild : public Algorithm {
-private:
+protected:
     bool isMinHeap;
 
     void heapify(std::vector<int>& elements, int n, int i, bool isMinHeap);
@@ -14,4 +14,5 @@ private:
 public:
     void execute(DataStructure* ds) override;
     void executeAndDisplay(DataStructure* ds) override;
+    void setHeapType(bool type);
 };

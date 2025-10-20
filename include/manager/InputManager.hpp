@@ -11,23 +11,26 @@
 
 class InputManager {
 private:
-    DataStructureEnum structure;
-    AlgorithmEnum algorithm;
-
     std::string trim(const std::string& str);
     DataStructureEnum parseStructure(const std::string& input);
     AlgorithmEnum parseAlgorithm(const std::string& input);
 
-    struct InputResult {
-        DataStructureEnum selectedStructure;
-        AlgorithmEnum selectedAlgorithm;
-        bool shouldExit;
+public:
+    struct StructureSelection {
+        DataStructureEnum selectedStructure = DataStructureEnum::UNKNOWN;
+        bool shouldExit = false;
     };
 
-    InputResult result;
+    struct AlgorithmSelection {
+        AlgorithmEnum selectedAlgorithm = AlgorithmEnum::UNKNOWN;
+        bool shouldExit = false;
+    };
 
-public:
-    InputResult selectStructureAndAlgorithm();
+    StructureSelection selectStructure();
+    AlgorithmSelection selectAlgorithm(DataStructureEnum structureType);
 
-    bool populateDS(DataStructure* ds); // Placeholder for future implementation
+    DataStructure* createDataStructure(DataStructureEnum structureType) const;
+    Algorithm* createAlgorithm(AlgorithmEnum algorithmType) const;
+
+    bool populateDS(DataStructure* ds, DataStructureEnum structureType);
 };

@@ -2,10 +2,14 @@
 #pragma once
 #include <chrono>
 #include <memory>
+#include <cstddef>
 #include "../structure/DataStructureFactory.hpp"
 #include "../algorithm/AlgorithmFactory.hpp"
 
 class BenchmarkManager {
+private:
+    static std::size_t getCurrentRSSBytes();
+    
 public:
     BenchmarkManager() = default;
 

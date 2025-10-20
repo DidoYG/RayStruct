@@ -38,36 +38,42 @@ AlgorithmEnum InputManager::parseAlgorithm(const std::string& input) {
     return AlgorithmEnum::UNKNOWN;
 }
 
-InputManager::InputResult InputManager::selectStructureAndAlgorithm() {
-    bool shouldExit = false;
-    structure = DataStructureEnum::UNKNOWN;
-    algorithm = AlgorithmEnum::UNKNOWN;
+InputManager::StructureSelection InputManager::selectStructure() {
+    StructureSelection selection;
+    DataStructureEnum structure = DataStructureEnum::UNKNOWN;
 
-    while (!shouldExit) {
+    while (structure == DataStructureEnum::UNKNOWN && !selection.shouldExit) {
         std::string input;
+        std::cout << "\nSelect data structure (List, Heap, Graph, Custom)" << std::endl;
+        std::cout << ">>> ";
+        std::getline(std::cin, input);
 
-        // Keep asking until a valid structure is selected
-        while (structure == DataStructureEnum::UNKNOWN) {
-            std::cout << "\nSelect data structure (List, Heap, Graph, Custom)" << std::endl;
-            std::cout << ">>> ";
-            std::getline(std::cin, input);
-            if (input == "exit") { shouldExit = true; break; }
-
-            structure = parseStructure(input);
-            if (structure == DataStructureEnum::UNKNOWN) {
-                std::cout << "\nInvalid structure. Try again." << std::endl;
-            }
-        }
-        if (shouldExit) break;
-
-        if (structure == DataStructureEnum::CUSTOM) {
-            // add the logic for uploading a file 
+        if (input == "exit") {
+            selection.shouldExit = true;
+            break;
         }
 
-        // Keep asking until a valid algorithm is selected
-        while (algorithm == AlgorithmEnum::UNKNOWN) {
-            switch (structure)
-            {
+        structure = parseStructure(input);
+        if (structure == DataStructureEnum::UNKNOWN) {
+            std::cout << "\nInvalid structure. Try again." << std::endl;
+        }
+    }
+
+    selection.selectedStructure = structure;
+    return selection;
+}
+
+InputManager::AlgorithmSelection InputManager::selectAlgorithm(DataStructureEnum structureType) {
+    AlgorithmSelection selection;
+    AlgorithmEnum algorithm = AlgorithmEnum::UNKNOWN;
+
+    if (structureType == DataStructureEnum::UNKNOWN) {
+        return selection;
+    }
+
+    while (algorithm == AlgorithmEnum::UNKNOWN && !selection.shouldExit) {
+        std::string input;
+        switch (structureType) {
             case DataStructureEnum::LIST:
                 std::cout << "\nSelect algorithm (Insertion Sort, Merge Sort, Custom)" << std::endl;
                 std::cout << ">>> ";
@@ -82,33 +88,38 @@ InputManager::InputResult InputManager::selectStructureAndAlgorithm() {
                 break;
             default:
                 break;
-            }
-
-            std::getline(std::cin, input);
-            if (input == "exit") { shouldExit = true; break; }
-
-            algorithm = parseAlgorithm(input);
-            if (algorithm == AlgorithmEnum::UNKNOWN) {
-                std::cout << "\nInvalid algorithm. Try again." << std::endl;
-            }
         }
-        if (shouldExit) break;
 
-        break;
+        std::getline(std::cin, input);
+
+        if (input == "exit") {
+            selection.shouldExit = true;
+            break;
+        }
+
+        algorithm = parseAlgorithm(input);
+        if (algorithm == AlgorithmEnum::UNKNOWN) {
+            std::cout << "\nInvalid algorithm. Try again." << std::endl;
+        }
     }
 
-    result.selectedStructure = structure;
-    result.selectedAlgorithm = algorithm;
-    result.shouldExit = shouldExit;
-
-    return result;
+    selection.selectedAlgorithm = algorithm;
+    return selection;
 }
 
-bool InputManager::populateDS(DataStructure* ds) {
+DataStructure* InputManager::createDataStructure(DataStructureEnum structureType) const {
+    return DataStructureFactory::createDataStructure(structureType);
+}
+
+Algorithm* InputManager::createAlgorithm(AlgorithmEnum algorithmType) const {
+    return AlgorithmFactory::createAlgorithm(algorithmType);
+}
+
+bool InputManager::populateDS(DataStructure* ds, DataStructureEnum structureType) {
     bool shouldExit = false;
     std::string input;
 
-    if (result.selectedStructure == DataStructureEnum::LIST || result.selectedStructure == DataStructureEnum::HEAP) {
+    if (structureType == DataStructureEnum::LIST || structureType == DataStructureEnum::HEAP) {
         while (true) {
             std::cout << "\nInsert elements into list ('done' to finish, 'rnd' to insert random elements, 'exit' to quit)" << std::endl;
             std::cout << ">>> ";
@@ -120,8 +131,8 @@ bool InputManager::populateDS(DataStructure* ds) {
                 std::cin >> input;
 
                 std::random_device rd;
-                std::mt19937 gen(rd()); // make a rnd method that checks time, converts it to binary them multiplys it to the input and so on
-                std::uniform_int_distribution<> dist(0, 100);
+                std::mt19937 gen(rd());
+                std::uniform_int_distribution<> dist(0, 100000);
 
                 for (int i = 0; i < std::stoi(input); ++i) {
                     int randomValue = dist(gen);
@@ -142,9 +153,11 @@ bool InputManager::populateDS(DataStructure* ds) {
                 std::cout << "\nInvalid input. Please enter an integer or one of the commands." << std::endl;
             }
         }
-    } else if (result.selectedStructure == DataStructureEnum::GRAPH) {
+    } else if (structureType == DataStructureEnum::GRAPH) {
         // add the logic for populating a graph
     }
+
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
     return shouldExit;
 }
