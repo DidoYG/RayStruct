@@ -1,10 +1,9 @@
-#include <iostream>
 #include <cstdlib>
-#include <limits>
-#include <algorithm>
-#include <cctype>
 #include "../include/manager/InputManager.hpp"
 #include "../include/manager/BenchmarkManager.hpp"
+#include "../include/structure/GraphStructure.hpp"
+#include "../include/algorithm/AStar.hpp"
+#include "../include/algorithm/Prims.hpp"
 
 void clearConsole() {
 #ifdef _WIN32
@@ -22,8 +21,6 @@ int main() {
 
     DataStructure* ds = nullptr;
     Algorithm* algo = nullptr;
-
-    BenchmarkManager::BenchmarkResult benchmarkResult;
 
     std::cout << "RayStruct++: Structures and Algorithms Benchmarking Tool" << std::endl;
     std::cout << "Type 'exit' at any point to quit." << std::endl;
@@ -91,6 +88,7 @@ int main() {
                     std::cout << "\nSelect heap type (min/max)" << std::endl;
                     std::cout << ">>> ";
                     std::cin >> heapType;
+                    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                     
                     HeapBuild* heapBuild = dynamic_cast<HeapBuild*>(algo);
 
@@ -116,6 +114,7 @@ int main() {
                     std::cout << "\nEnter k" << std::endl;
                     std::cout << ">>> ";
                     std::cin >> k;
+                    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
                     HeapSelection* heapSelect = dynamic_cast<HeapSelection*>(algo);
 
@@ -136,15 +135,146 @@ int main() {
                         std::cout << "\nInvalid option. Please enter 'smallest' or 'largest'.\n";
                     }
                 }
+            } else if (algorithmSelection.selectedAlgorithm == AlgorithmEnum::A_STAR) {
+                auto* graph = dynamic_cast<GraphStructure*>(ds);
+                auto* astarAlgo = dynamic_cast<AStar*>(algo);
+
+                if (!graph || !astarAlgo) {
+                    std::cout << "\nGraph structure or A* algorithm is unavailable." << std::endl;
+                    continue;
+                }
+
+                if (graph->getAdjacency().empty()) {
+                    std::cout << "\nGraph has no edges. Please add edges before running A*." << std::endl;
+                    continue;
+                }
+
+                std::string vertexInput;
+                int startVertex = -1;
+                int goalVertex = -1;
+
+                while (true) {
+                    std::cout << "\nEnter start vertex id for A* ('exit' to quit)" << std::endl;
+                    std::cout << ">>> ";
+                    std::cin >> vertexInput;
+                    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+                    if (vertexInput == "exit") {
+                        shouldExit = true;
+                        break;
+                    }
+
+                    try {
+                        startVertex = std::stoi(vertexInput);
+                    } catch (const std::exception&) {
+                        std::cout << "\nInvalid vertex id. Please enter an integer value." << std::endl;
+                        continue;
+                    }
+
+                    if (!graph->hasVertex(startVertex)) {
+                        std::cout << "\nVertex not found in the graph. Try again." << std::endl;
+                        continue;
+                    }
+
+                    astarAlgo->setStart(startVertex);
+                    break;
+                }
+
+                if (shouldExit) {
+                    break;
+                }
+
+                while (true) {
+                    std::cout << "\nEnter goal vertex id for A* ('exit' to quit)" << std::endl;
+                    std::cout << ">>> ";
+                    std::cin >> vertexInput;
+                    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+                    if (vertexInput == "exit") {
+                        shouldExit = true;
+                        break;
+                    }
+
+                    try {
+                        goalVertex = std::stoi(vertexInput);
+                    } catch (const std::exception&) {
+                        std::cout << "\nInvalid vertex id. Please enter an integer value." << std::endl;
+                        continue;
+                    }
+
+                    if (!graph->hasVertex(goalVertex)) {
+                        std::cout << "\nVertex not found in the graph. Try again." << std::endl;
+                        continue;
+                    }
+
+                    astarAlgo->setGoal(goalVertex);
+                    break;
+                }
+
+                if (shouldExit) {
+                    break;
+                }
+            } else if (algorithmSelection.selectedAlgorithm == AlgorithmEnum::PRIMS) {
+                auto* graph = dynamic_cast<GraphStructure*>(ds);
+                auto* primsAlgo = dynamic_cast<Prims*>(algo);
+
+                if (!graph || !primsAlgo) {
+                    std::cout << "\nGraph structure or Prim's algorithm is unavailable." << std::endl;
+                    continue;
+                }
+
+                if (graph->getAdjacency().empty()) {
+                    std::cout << "\nGraph has no edges. Please add edges before running Prim's algorithm." << std::endl;
+                    continue;
+                }
+
+                std::string vertexInput;
+                int startVertex = -1;
+
+                while (true) {
+                    std::cout << "\nEnter starting vertex id for Prim's (or type 'auto' to auto-select, 'exit' to quit)" << std::endl;
+                    std::cout << ">>> ";
+                    std::cin >> vertexInput;
+                    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+                    if (vertexInput == "exit") {
+                        shouldExit = true;
+                        break;
+                    }
+
+                    std::string lowered = vertexInput;
+                    std::transform(lowered.begin(), lowered.end(), lowered.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+
+                    if (lowered == "auto" || lowered == "default" || lowered == "skip") {
+                        startVertex = -1;
+                        break;
+                    }
+
+                    try {
+                        startVertex = std::stoi(vertexInput);
+                    } catch (const std::exception&) {
+                        std::cout << "\nInvalid vertex id. Please enter an integer value." << std::endl;
+                        continue;
+                    }
+
+                    if (!graph->hasVertex(startVertex)) {
+                        std::cout << "\nVertex not found in the graph. Try again." << std::endl;
+                        continue;
+                    }
+
+                    break;
+                }
+
+                if (shouldExit) {
+                    break;
+                }
+
+                primsAlgo->setStart(startVertex);
             }
 
             clearConsole();
-            benchmarkResult = benchmarkManager.runBenchmark(ds, algo);
+            benchmarkManager.runBenchmark(ds, algo);
 
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            std::cout << "\nBenchmark successful" << std::endl;
-            std::cout << "\nExecution Time (ms): " << benchmarkResult.executionTimeMs << std::endl;
-            std::cout << "\nMemory Usage (B): " << benchmarkResult.memoryUsedBytes << std::endl;
             if (ds && algo && ds->getElements().size() <= 20) {
                 std::cout << "\nOperations: " << std::endl;
                 algo->executeAndDisplay(ds);
@@ -153,6 +283,7 @@ int main() {
             std::string input;
             std::cout << "\nRun another algorithm on the same data structure? (y/n)" << std::endl;
             std::cout << ">>> ";
+            std::cin >> std::ws;
             std::getline(std::cin, input);
 
             if (input == "exit") {

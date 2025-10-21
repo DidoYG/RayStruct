@@ -1,22 +1,20 @@
 // include/manager/BenchmarkManager.hpp
 #pragma once
+#include <iostream>
 #include <chrono>
 #include <memory>
 #include <cstddef>
+#include <cstdio>
+#include <fstream>
 #include "../structure/DataStructureFactory.hpp"
 #include "../algorithm/AlgorithmFactory.hpp"
 
 class BenchmarkManager {
 private:
-    static std::size_t getCurrentRSSBytes();
+    void getCurrentRSSBytes();
     
 public:
     BenchmarkManager() = default;
 
-    struct BenchmarkResult {
-        double executionTimeMs;
-        size_t memoryUsedBytes;
-    };
-
-    BenchmarkResult runBenchmark(DataStructure* ds, Algorithm* algo);
+    void runBenchmark(DataStructure* ds, Algorithm* algo);
 };

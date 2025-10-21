@@ -5,22 +5,16 @@ Algorithm* AlgorithmFactory::createAlgorithm(AlgorithmEnum type) {
     switch (type) {
         case AlgorithmEnum::INSERTION_SORT: 
             return new InsertionSort();
-            break;
         case AlgorithmEnum::MERGE_SORT: 
             return new MergeSort();
-            break;
         case AlgorithmEnum::HEAP_BUILD: 
             return new HeapBuild();
-            break;
         case AlgorithmEnum::HEAP_SELECTION:
             return new HeapSelection();
-            break;
         case AlgorithmEnum::A_STAR: 
-            // return new GraphAStar();
-            break;
+            return new AStar();
         case AlgorithmEnum::PRIMS: 
-            // return new GraphBStar();
-            break;
+            return new Prims();
         case AlgorithmEnum::CUSTOM:
             // return custom
             break;

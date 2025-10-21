@@ -67,5 +67,3 @@ void HeapSelection::setIsSmallest(bool choice) {
 void HeapSelection::setK(int k) {
     this->k = k;
 }
-
-// fix the output not showing

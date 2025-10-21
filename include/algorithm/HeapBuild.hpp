@@ -9,7 +9,7 @@ protected:
     void heapify(std::vector<int>& elements, int n, int i, bool isMinHeap);
     void buildHeap(std::vector<int>& elements, bool isMinHeap);
     void buildHeapVisual(std::vector<int>& elements, bool isMinHeap);
-    void display(const std::vector<int>& elements);
+    void display(const std::vector<int>& elements) override;
 
 public:
     void execute(DataStructure* ds) override;

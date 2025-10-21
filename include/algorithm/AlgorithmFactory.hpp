@@ -6,6 +6,8 @@
 #include "MergeSort.hpp"
 #include "HeapBuild.hpp"
 #include "HeapSelection.hpp"
+#include "AStar.hpp"
+#include "Prims.hpp"
 
 class AlgorithmFactory {
 public:

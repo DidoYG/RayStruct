@@ -1,5 +1,6 @@
 // src/manager/InputManager.cpp
 #include "../../include/manager/InputManager.hpp"
+#include "../../include/structure/GraphStructure.hpp"
 
 std::string InputManager::trim(const std::string& str) {
     auto start = str.find_first_not_of(" \t\n\r\f\v");
@@ -31,8 +32,8 @@ AlgorithmEnum InputManager::parseAlgorithm(const std::string& input) {
     if (s == "insertion sort") return AlgorithmEnum::INSERTION_SORT;
     if (s == "heap build") return AlgorithmEnum::HEAP_BUILD;
     if (s == "heap selection") return AlgorithmEnum::HEAP_SELECTION;
-    if (s == "a*") return AlgorithmEnum::A_STAR;
-    if (s == "prim") return AlgorithmEnum::PRIMS;
+    if (s == "a*" || s == "astar" || s == "a-star") return AlgorithmEnum::A_STAR;
+    if (s == "prim" || s == "prims" || s == "prim's") return AlgorithmEnum::PRIMS;
     if (s == "custom") return AlgorithmEnum::CUSTOM;
 
     return AlgorithmEnum::UNKNOWN;
@@ -120,8 +121,9 @@ bool InputManager::populateDS(DataStructure* ds, DataStructureEnum structureType
     std::string input;
 
     if (structureType == DataStructureEnum::LIST || structureType == DataStructureEnum::HEAP) {
+        std::cout << "\nInsert elements into list ('done' to finish, 'rnd' to insert random elements, 'exit' to quit)" << std::endl;
+        
         while (true) {
-            std::cout << "\nInsert elements into list ('done' to finish, 'rnd' to insert random elements, 'exit' to quit)" << std::endl;
             std::cout << ">>> ";
             std::cin >> input;
             if (input == "done") break;
@@ -154,7 +156,125 @@ bool InputManager::populateDS(DataStructure* ds, DataStructureEnum structureType
             }
         }
     } else if (structureType == DataStructureEnum::GRAPH) {
-        // add the logic for populating a graph
+        auto* graph = dynamic_cast<GraphStructure*>(ds);
+        if (!graph) {
+            std::cout << "\nFailed to access graph structure." << std::endl;
+            return true;
+        }
+
+        graph->clear();
+
+        std::cout << "\nInsert vertices into the graph ('done' to finish, 'exit' to quit)" << std::endl;
+        while (true) {
+            std::cout << ">>> ";
+            std::cin >> input;
+
+            if (input == "done") {
+                break;
+            }
+            if (input == "exit") {
+                shouldExit = true;
+                break;
+            }
+
+            try {
+                int vertex = std::stoi(input);
+                graph->insert(vertex);
+            } catch (const std::invalid_argument&) {
+                std::cout << "\nInvalid vertex id. Please enter an integer or one of the commands." << std::endl;
+            } catch (const std::out_of_range&) {
+                std::cout << "\nVertex id out of range. Try a smaller value." << std::endl;
+            }
+        }
+
+        if (shouldExit) {
+            return shouldExit;
+        }
+
+        std::cout << "\nInsert edges as 'from to weight' (weight can be decimal)."
+                     "\nType 'done' when finished, 'exit' to quit." << std::endl;
+        while (true) {
+            std::cout << ">>> ";
+            std::cin >> input;
+
+            if (input == "done") {
+                break;
+            }
+            if (input == "exit") {
+                shouldExit = true;
+                break;
+            }
+
+            std::string toStr;
+            std::string weightStr;
+            if (!(std::cin >> toStr >> weightStr)) {
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                std::cout << "\nInvalid edge format. Please enter three values: from to weight." << std::endl;
+                continue;
+            }
+
+            try {
+                int from = std::stoi(input);
+                int to = std::stoi(toStr);
+                double weight = std::stod(weightStr);
+                graph->addEdge(from, to, weight, true);
+            } catch (const std::invalid_argument&) {
+                std::cout << "\nInvalid edge input. Please use integers for vertices and numeric weights." << std::endl;
+            } catch (const std::out_of_range&) {
+                std::cout << "\nEdge values out of range. Try smaller numbers." << std::endl;
+            }
+        }
+
+        if (shouldExit) {
+            return shouldExit;
+        }
+
+        std::cout << "\nWould you like to add heuristic values for A*? (y/n)" << std::endl;
+        std::cout << ">>> ";
+        std::cin >> input;
+
+        if (input == "exit") {
+            shouldExit = true;
+        } else {
+            std::transform(input.begin(), input.end(), input.begin(), [](unsigned char c) {
+                return static_cast<char>(std::tolower(c));
+            });
+
+            if (input == "y" || input == "yes") {
+                std::cout << "\nEnter heuristics as 'vertex value' ('done' to finish, 'exit' to quit)" << std::endl;
+                while (true) {
+                    std::cout << ">>> ";
+                    std::cin >> input;
+
+                    if (input == "done") {
+                        break;
+                    }
+                    if (input == "exit") {
+                        shouldExit = true;
+                        break;
+                    }
+
+                    std::string valueStr;
+                    if (!(std::cin >> valueStr)) {
+                        std::cin.clear();
+                        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                        std::cout << "\nInvalid heuristic format. Please enter two values: vertex value." << std::endl;
+                        continue;
+                    }
+
+                    try {
+                        int vertex = std::stoi(input);
+                        double heuristic = std::stod(valueStr);
+                        graph->setHeuristic(vertex, heuristic);
+                    } catch (const std::invalid_argument&) {
+                        std::cout << "\nInvalid heuristic input. Please use an integer vertex and numeric value." << std::endl;
+                    } catch (const std::out_of_range&) {
+                        std::cout << "\nHeuristic input out of range. Try smaller numbers." << std::endl;
+                    }
+                }
+            }
+        }
     }
 
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
