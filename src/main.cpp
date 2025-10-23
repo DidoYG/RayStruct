@@ -275,9 +275,16 @@ int main() {
             clearConsole();
             benchmarkManager.runBenchmark(ds, algo);
 
-            if (ds && algo && ds->getElements().size() <= 20) {
-                std::cout << "\nOperations: " << std::endl;
-                algo->executeAndDisplay(ds);
+            if (algorithmSelection.selectedAlgorithm != AlgorithmEnum::HEAP_SELECTION && algorithmSelection.selectedAlgorithm != AlgorithmEnum::A_STAR && algorithmSelection.selectedAlgorithm != AlgorithmEnum::PRIMS) {
+                if (ds && algo && ds->getElements().size() <= 20) {
+                    std::cout << "\nOperations: " << std::endl;
+                    algo->executeAndDisplay(ds);
+                }
+            } else {
+                if (ds && algo) {
+                    std::cout << "\nResult: " << std::endl;
+                    algo->executeAndDisplay(ds);
+                }
             }
 
             std::string input;

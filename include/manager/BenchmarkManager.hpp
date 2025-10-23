@@ -11,7 +11,10 @@
 
 class BenchmarkManager {
 private:
+    double lastRSSKb = 0, lastSharedKb = 0, lastPrivateKb = 0;
+
     void getCurrentRSSBytes();
+    void getLastRssBytes();
     
 public:
     BenchmarkManager() = default;

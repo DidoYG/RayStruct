@@ -121,14 +121,14 @@ bool InputManager::populateDS(DataStructure* ds, DataStructureEnum structureType
     std::string input;
 
     if (structureType == DataStructureEnum::LIST || structureType == DataStructureEnum::HEAP) {
-        std::cout << "\nInsert elements into list ('done' to finish, 'rnd' to insert random elements, 'exit' to quit)" << std::endl;
+        std::cout << "\nInsert elements into structure ('done' to finish, 'rnd' to insert random elements, 'exit' to quit)" << std::endl;
         
         while (true) {
             std::cout << ">>> ";
             std::cin >> input;
             if (input == "done") break;
             if (input == "rnd") {
-                std::cout << "\nHow many elements do you wan to insert?" << std::endl;
+                std::cout << "\nHow many elements do you want to insert?" << std::endl;
                 std::cout << ">>> ";
                 std::cin >> input;
 

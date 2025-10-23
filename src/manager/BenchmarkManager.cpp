@@ -15,14 +15,19 @@ void BenchmarkManager::getCurrentRSSBytes() {
     buffer >> tSize >> resident >> share;
     buffer.close();
 
-    const long page_size_kb = sysconf(_SC_PAGE_SIZE) / 1024;
-    const double rss_kb = resident * page_size_kb;
-    const double shared_kb = share * page_size_kb;
-    const double private_kb = rss_kb - shared_kb;
+    const long pageSizeKb = sysconf(_SC_PAGE_SIZE) / 1024;
+    const double rssKb = resident * pageSizeKb;
+    const double sharedKb = share * pageSizeKb;
+    const double privateKb = rssKb - sharedKb;
 
-    std::cout << "[Linux] RSS - " << rss_kb << " kB\n";
-    std::cout << "[Linux] Shared Memory - " << shared_kb << " kB\n";
-    std::cout << "[Linux] Private Memory - " << private_kb << " kB\n";
+    std::cout << "\nMemory usage at end:\n";
+    std::cout << "[Linux] RSS - " << rssKb << " kB\n";
+    std::cout << "[Linux] Shared Memory - " << sharedKb << " kB\n";
+    std::cout << "[Linux] Private Memory - " << privateKb << " kB\n";
+
+    lastRSSKb = rssKb;
+    lastSharedKb = sharedKb;
+    lastPrivateKb = privateKb;
 
 #elif defined(_WIN32)
 
@@ -31,29 +36,32 @@ void BenchmarkManager::getCurrentRSSBytes() {
                              reinterpret_cast<PROCESS_MEMORY_COUNTERS*>(&pmc),
                              sizeof(pmc))) {
 
-        const double rss_kb = static_cast<double>(pmc.WorkingSetSize) / 1024.0;
-        const double private_kb = static_cast<double>(pmc.PrivateUsage) / 1024.0;
-        const double shared_kb = rss_kb - private_kb;
+        const double rssKb = static_cast<double>(pmc.WorkingSetSize) / 1024.0;
+        const double privateKb = static_cast<double>(pmc.PrivateUsage) / 1024.0;
+        const double sharedKb = rssKb - privateKb;
 
-        std::cout << "[Windows] RSS (Working Set): " << rss_kb << " kB\n";
-        std::cout << "[Windows] Private Memory:    " << private_kb << " kB\n";
-        std::cout << "[Windows] Shared Estimate:   " << shared_kb << " kB";
+        std::cout << "[Windows] RSS (Working Set): " << rssKb << " kB\n";
+        std::cout << "[Windows] Private Memory:    " << privateKb << " kB\n";
+        std::cout << "[Windows] Shared Estimate:   " << sharedKb << " kB";
     }
 
 #endif
 }
 
+void BenchmarkManager::getLastRssBytes() {
+    std::cout << "\nMemory usage at start:\n";
+    std::cout << "[Linux] RSS - " << lastRSSKb << " kB\n";
+    std::cout << "[Linux] Shared Memory - " << lastSharedKb << " kB\n";
+    std::cout << "[Linux] Private Memory - " << lastPrivateKb << " kB\n";
+}
+
 void BenchmarkManager::runBenchmark(DataStructure* ds, Algorithm* algo) {
     std::cout << "\nBenchmark Metrics =>" << std::endl;
 
-    std::cout << "\nMemory usage at start:\n";
-    getCurrentRSSBytes();
-
+    getLastRssBytes();
     auto start = std::chrono::high_resolution_clock::now();
     algo->execute(ds); // polymorphic call
     auto end = std::chrono::high_resolution_clock::now();
-
-    std::cout << "\nMemory usage at end:\n";
     getCurrentRSSBytes();
 
     double executionTimeMs = std::chrono::duration<double, std::milli>(end - start).count();
