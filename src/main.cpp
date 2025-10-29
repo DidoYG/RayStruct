@@ -4,6 +4,7 @@
 #include "../include/structure/GraphStructure.hpp"
 #include "../include/algorithm/AStar.hpp"
 #include "../include/algorithm/Prims.hpp"
+#include "../include/algorithm/AlgorithmFactory.hpp"
 
 void clearConsole() {
 #ifdef _WIN32
@@ -75,7 +76,7 @@ int main() {
                 continue;
             }
 
-            algo = inputManager.createAlgorithm(algorithmSelection.selectedAlgorithm);
+            algo = inputManager.createAlgorithm(algorithmSelection);
             if (!algo) {
                 std::cout << "\nFailed to create algorithm instance." << std::endl;
                 continue;
@@ -319,6 +320,8 @@ int main() {
     // delete instances to avoid memory leaks
     if (ds) delete ds;
     if (algo) delete algo;
+
+    AlgorithmFactory::cleanupCustomLibraries();
 
     return 0;
 }

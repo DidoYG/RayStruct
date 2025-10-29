@@ -1,5 +1,6 @@
 // include/algorithm/AlgorithmFactory.hpp
 #pragma once
+#include <string>
 #include "../core/Enums.hpp"
 #include "../model/Algorithm.hpp"
 #include "InsertionSort.hpp"
@@ -11,5 +12,6 @@
 
 class AlgorithmFactory {
 public:
-    static Algorithm* createAlgorithm(AlgorithmEnum type);
+    static Algorithm* createAlgorithm(AlgorithmEnum type, const std::string& customLibraryPath = "");
+    static void cleanupCustomLibraries();
 };

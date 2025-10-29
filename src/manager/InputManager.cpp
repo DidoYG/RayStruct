@@ -1,6 +1,17 @@
 // src/manager/InputManager.cpp
 #include "../../include/manager/InputManager.hpp"
 #include "../../include/structure/GraphStructure.hpp"
+#include <cctype>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <limits>
+#include <random>
+#include <sstream>
+#include <string>
+#include <cstdlib>
+
+namespace fs = std::filesystem;
 
 std::string InputManager::trim(const std::string& str) {
     auto start = str.find_first_not_of(" \t\n\r\f\v");
@@ -37,6 +48,193 @@ AlgorithmEnum InputManager::parseAlgorithm(const std::string& input) {
     if (s == "custom") return AlgorithmEnum::CUSTOM;
 
     return AlgorithmEnum::UNKNOWN;
+}
+
+bool InputManager::promptCustomAlgorithmPath(std::string& outPath, std::string& compilerOutput, std::string& libraryPath) {
+    while (true) {
+        std::cout << "\nEnter the path to your custom algorithm .cpp file ('exit' to quit)" << std::endl;
+        std::cout << ">>> ";
+
+        std::string rawPath;
+        std::getline(std::cin, rawPath);
+        rawPath = trim(rawPath);
+
+        if (rawPath.empty()) {
+            std::cout << "\nPath cannot be empty. Try again." << std::endl;
+            continue;
+        }
+
+        if (rawPath == "exit") {
+            return false;
+        }
+
+        fs::path candidate(rawPath);
+        std::error_code ec;
+        if (!fs::exists(candidate, ec) || ec) {
+            std::cout << "\nFile not found: " << rawPath << "\nPlease provide a valid path." << std::endl;
+            continue;
+        }
+
+        if (!fs::is_regular_file(candidate, ec) || ec) {
+            std::cout << "\nProvided path is not a regular file. Try again." << std::endl;
+            continue;
+        }
+
+        std::string extension = candidate.extension().string();
+        std::transform(extension.begin(), extension.end(), extension.begin(), [](unsigned char c) {
+            return static_cast<char>(std::tolower(c));
+        });
+
+        if (extension != ".cpp") {
+            std::cout << "\nCustom algorithm must be provided as a .cpp file. Try again." << std::endl;
+            continue;
+        }
+
+        fs::path normalized = candidate;
+        if (candidate.is_relative()) {
+            auto absolutePath = fs::absolute(candidate, ec);
+            if (!ec) {
+                normalized = absolutePath.lexically_normal();
+            }
+        } else {
+            normalized = candidate.lexically_normal();
+        }
+
+        std::string validationError;
+        if (!validateCustomAlgorithmFile(normalized.string(), validationError)) {
+            std::cout << "\nCustom algorithm file failed validation: " << validationError << std::endl;
+            std::cout << "Please adjust the file and try again." << std::endl;
+            continue;
+        }
+
+        std::string compileOutput;
+        std::string compiledLibraryPath;
+        if (!compileCustomAlgorithm(normalized.string(), compileOutput, compiledLibraryPath)) {
+            std::cout << "\nCompilation of custom algorithm failed." << std::endl;
+            if (!compileOutput.empty()) {
+                std::cout << compileOutput << std::endl;
+            }
+            std::cout << "Please address the compiler errors and try again." << std::endl;
+            continue;
+        }
+
+        if (!compileOutput.empty()) {
+            std::cout << "\nCompilation succeeded with messages:\n" << compileOutput << std::endl;
+        } else {
+            std::cout << "\nCompilation succeeded with no warnings." << std::endl;
+        }
+
+        outPath = normalized.string();
+        compilerOutput = compileOutput;
+        libraryPath = compiledLibraryPath;
+        std::cout << "\nCustom algorithm path accepted: " << outPath << std::endl;
+        std::cout << "Generated shared library: " << libraryPath << std::endl;
+        return true;
+    }
+}
+
+bool InputManager::validateCustomAlgorithmFile(const std::string& filePath, std::string& errorMessage) {
+    std::ifstream file(filePath);
+    if (!file.is_open()) {
+        errorMessage = "unable to open file.";
+        return false;
+    }
+
+    std::ostringstream buffer;
+    buffer << file.rdbuf();
+    std::string content = buffer.str();
+    if (content.empty()) {
+        errorMessage = "file appears to be empty.";
+        return false;
+    }
+
+    std::string lowercaseContent = content;
+    std::transform(lowercaseContent.begin(), lowercaseContent.end(), lowercaseContent.begin(), [](unsigned char c) {
+        return static_cast<char>(std::tolower(c));
+    });
+
+    if (lowercaseContent.find("algorithm.hpp") == std::string::npos) {
+        errorMessage = "missing include for Algorithm.hpp.";
+        return false;
+    }
+
+    bool inheritsFromAlgorithm = lowercaseContent.find("public algorithm") != std::string::npos;
+    if (!inheritsFromAlgorithm) {
+        errorMessage = "no class derives from the Algorithm base class (expecting 'public Algorithm').";
+        return false;
+    }
+
+    bool hasExecute = lowercaseContent.find("void execute(") != std::string::npos;
+    bool hasExecuteAndDisplay = lowercaseContent.find("void executeanddisplay(") != std::string::npos;
+    bool hasDisplay = lowercaseContent.find("void display(") != std::string::npos;
+
+    if (!hasExecute || !hasExecuteAndDisplay || !hasDisplay) {
+        errorMessage = "missing required method overrides (execute, executeAndDisplay, display).";
+        return false;
+    }
+
+    if (lowercaseContent.find("createalgorithm(") == std::string::npos) {
+        errorMessage = "missing factory function 'createAlgorithm'.";
+        return false;
+    }
+
+    return true;
+}
+
+bool InputManager::compileCustomAlgorithm(const std::string& filePath, std::string& compilerOutput, std::string& libraryPath) {
+    fs::path sourcePath(__FILE__);
+    fs::path projectRoot = sourcePath.parent_path().parent_path().parent_path();
+    fs::path includeDir = projectRoot / "include";
+
+    fs::path algorithmDir = projectRoot / "src" / "algorithm";
+    std::error_code dirEc;
+    fs::create_directories(algorithmDir, dirEc);
+
+    fs::path inputPath(filePath);
+    std::string stem = inputPath.stem().string();
+    if (stem.empty()) {
+        stem = "custom_algorithm";
+    }
+    std::replace_if(stem.begin(), stem.end(), [](unsigned char c) {
+        return !std::isalnum(static_cast<unsigned char>(c)) && c != '_';
+    }, '_');
+
+    fs::path libraryFile = algorithmDir / ("lib" + stem + "_custom.so");
+    std::error_code removeEc;
+    fs::remove(libraryFile, removeEc);
+
+    fs::path logPath = "raystruct_custom_algo.txt";
+
+    std::ostringstream cmdStream;
+    cmdStream << "g++ -std=c++20 -shared -fPIC -Wall -Wextra"
+              << " -I\"" << includeDir.string() << "\""
+              << " -I\"" << (projectRoot / "src").string() << "\""
+              << " \"" << filePath << "\""
+              << " -o \"" << libraryFile.string() << "\""
+              << " >\"" << logPath.string() << "\" 2>&1";
+
+    int result = std::system(cmdStream.str().c_str());
+
+    compilerOutput.clear();
+    {
+        std::ifstream logStream(logPath);
+        if (logStream.is_open()) {
+            std::ostringstream oss;
+            oss << logStream.rdbuf();
+            compilerOutput = oss.str();
+        }
+    }
+
+    std::error_code ec;
+    fs::remove(logPath, ec);
+
+    if (result != 0) {
+        fs::remove(libraryFile, ec);
+        return false;
+    }
+
+    libraryPath = libraryFile.string();
+    return true;
 }
 
 InputManager::StructureSelection InputManager::selectStructure() {
@@ -102,6 +300,14 @@ InputManager::AlgorithmSelection InputManager::selectAlgorithm(DataStructureEnum
         if (algorithm == AlgorithmEnum::UNKNOWN) {
             std::cout << "\nInvalid algorithm. Try again." << std::endl;
         }
+        if (algorithm == AlgorithmEnum::CUSTOM) {
+            std::cout << "\nSelected custom algorithm." << std::endl;
+            std::cout << "Ensure your implementation derives from the Algorithm base class provided by RayStruct++." << std::endl;
+            if (!promptCustomAlgorithmPath(selection.customAlgorithmPath, selection.customAlgorithmCompileOutput, selection.customAlgorithmLibraryPath)) {
+                selection.shouldExit = true;
+                algorithm = AlgorithmEnum::UNKNOWN;
+            }
+        }
     }
 
     selection.selectedAlgorithm = algorithm;
@@ -112,8 +318,8 @@ DataStructure* InputManager::createDataStructure(DataStructureEnum structureType
     return DataStructureFactory::createDataStructure(structureType);
 }
 
-Algorithm* InputManager::createAlgorithm(AlgorithmEnum algorithmType) const {
-    return AlgorithmFactory::createAlgorithm(algorithmType);
+Algorithm* InputManager::createAlgorithm(const AlgorithmSelection& selection) const {
+    return AlgorithmFactory::createAlgorithm(selection.selectedAlgorithm, selection.customAlgorithmLibraryPath);
 }
 
 bool InputManager::populateDS(DataStructure* ds, DataStructureEnum structureType) {

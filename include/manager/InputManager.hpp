@@ -1,11 +1,7 @@
 // include/manager/InputManager.hpp
 #pragma once
-#include <iostream>
 #include <string>
-#include <cctype>
 #include <algorithm>
-#include <random>
-#include <limits>
 #include "../structure/DataStructureFactory.hpp"
 #include "../algorithm/AlgorithmFactory.hpp"
 
@@ -14,6 +10,9 @@ private:
     std::string trim(const std::string& str);
     DataStructureEnum parseStructure(const std::string& input);
     AlgorithmEnum parseAlgorithm(const std::string& input);
+    bool promptCustomAlgorithmPath(std::string& outPath, std::string& compilerOutput, std::string& libraryPath);
+    bool validateCustomAlgorithmFile(const std::string& filePath, std::string& errorMessage);
+    bool compileCustomAlgorithm(const std::string& filePath, std::string& compilerOutput, std::string& libraryPath);
 
 public:
     struct StructureSelection {
@@ -24,13 +23,16 @@ public:
     struct AlgorithmSelection {
         AlgorithmEnum selectedAlgorithm = AlgorithmEnum::UNKNOWN;
         bool shouldExit = false;
+        std::string customAlgorithmPath;
+        std::string customAlgorithmCompileOutput;
+        std::string customAlgorithmLibraryPath;
     };
 
     StructureSelection selectStructure();
     AlgorithmSelection selectAlgorithm(DataStructureEnum structureType);
 
     DataStructure* createDataStructure(DataStructureEnum structureType) const;
-    Algorithm* createAlgorithm(AlgorithmEnum algorithmType) const;
+    Algorithm* createAlgorithm(const AlgorithmSelection& selection) const;
 
     bool populateDS(DataStructure* ds, DataStructureEnum structureType);
 };
