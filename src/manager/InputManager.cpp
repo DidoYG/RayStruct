@@ -11,8 +11,10 @@
 #include <string>
 #include <cstdlib>
 
+// Namespace alias for filesystem
 namespace fs = std::filesystem;
 
+// Helper: trim whitespace from both ends of a string
 std::string InputManager::trim(const std::string& str) {
     auto start = str.find_first_not_of(" \t\n\r\f\v");
     if (start == std::string::npos)
@@ -50,6 +52,7 @@ AlgorithmEnum InputManager::parseAlgorithm(const std::string& input) {
     return AlgorithmEnum::UNKNOWN;
 }
 
+// Helper: prompt user for custom algorithm file path and handle compilation
 bool InputManager::promptCustomAlgorithmPath(std::string& outPath, std::string& compilerOutput, std::string& libraryPath) {
     while (true) {
         std::cout << "\nEnter the path to your custom algorithm .cpp file ('exit' to quit)" << std::endl;
@@ -68,6 +71,7 @@ bool InputManager::promptCustomAlgorithmPath(std::string& outPath, std::string& 
             return false;
         }
 
+        // Check if file exists and is a regular file
         fs::path candidate(rawPath);
         std::error_code ec;
         if (!fs::exists(candidate, ec) || ec) {
@@ -75,11 +79,13 @@ bool InputManager::promptCustomAlgorithmPath(std::string& outPath, std::string& 
             continue;
         }
 
+        // Check if it's a regular file
         if (!fs::is_regular_file(candidate, ec) || ec) {
             std::cout << "\nProvided path is not a regular file. Try again." << std::endl;
             continue;
         }
 
+        // Check file extension
         std::string extension = candidate.extension().string();
         std::transform(extension.begin(), extension.end(), extension.begin(), [](unsigned char c) {
             return static_cast<char>(std::tolower(c));
@@ -90,6 +96,7 @@ bool InputManager::promptCustomAlgorithmPath(std::string& outPath, std::string& 
             continue;
         }
 
+        // Normalize path
         fs::path normalized = candidate;
         if (candidate.is_relative()) {
             auto absolutePath = fs::absolute(candidate, ec);
@@ -100,6 +107,7 @@ bool InputManager::promptCustomAlgorithmPath(std::string& outPath, std::string& 
             normalized = candidate.lexically_normal();
         }
 
+        // Validate file contents
         std::string validationError;
         if (!validateCustomAlgorithmFile(normalized.string(), validationError)) {
             std::cout << "\nCustom algorithm file failed validation: " << validationError << std::endl;
@@ -107,6 +115,7 @@ bool InputManager::promptCustomAlgorithmPath(std::string& outPath, std::string& 
             continue;
         }
 
+        // Compile the custom algorithm
         std::string compileOutput;
         std::string compiledLibraryPath;
         if (!compileCustomAlgorithm(normalized.string(), compileOutput, compiledLibraryPath)) {
@@ -118,12 +127,14 @@ bool InputManager::promptCustomAlgorithmPath(std::string& outPath, std::string& 
             continue;
         }
 
+        // Compilation succeeded
         if (!compileOutput.empty()) {
             std::cout << "\nCompilation succeeded with messages:\n" << compileOutput << std::endl;
         } else {
             std::cout << "\nCompilation succeeded with no warnings." << std::endl;
         }
 
+        // Set output parameters
         outPath = normalized.string();
         compilerOutput = compileOutput;
         libraryPath = compiledLibraryPath;
@@ -133,13 +144,16 @@ bool InputManager::promptCustomAlgorithmPath(std::string& outPath, std::string& 
     }
 }
 
+// Helper: validate the contents of the custom algorithm file
 bool InputManager::validateCustomAlgorithmFile(const std::string& filePath, std::string& errorMessage) {
+    // Basic validation: check for required includes and method signatures
     std::ifstream file(filePath);
     if (!file.is_open()) {
         errorMessage = "unable to open file.";
         return false;
     }
 
+    // Read entire file content
     std::ostringstream buffer;
     buffer << file.rdbuf();
     std::string content = buffer.str();
@@ -148,31 +162,38 @@ bool InputManager::validateCustomAlgorithmFile(const std::string& filePath, std:
         return false;
     }
 
+    // Convert content to lowercase for case-insensitive checks
     std::string lowercaseContent = content;
     std::transform(lowercaseContent.begin(), lowercaseContent.end(), lowercaseContent.begin(), [](unsigned char c) {
         return static_cast<char>(std::tolower(c));
     });
 
+    // Check for required elements
+    // Check for include of Algorithm.hpp
     if (lowercaseContent.find("algorithm.hpp") == std::string::npos) {
         errorMessage = "missing include for Algorithm.hpp.";
         return false;
     }
 
+    // Check for class deriving from Algorithm
     bool inheritsFromAlgorithm = lowercaseContent.find("public algorithm") != std::string::npos;
     if (!inheritsFromAlgorithm) {
         errorMessage = "no class derives from the Algorithm base class (expecting 'public Algorithm').";
         return false;
     }
 
+    // Check for required method overrides
     bool hasExecute = lowercaseContent.find("void execute(") != std::string::npos;
     bool hasExecuteAndDisplay = lowercaseContent.find("void executeanddisplay(") != std::string::npos;
     bool hasDisplay = lowercaseContent.find("void display(") != std::string::npos;
 
+    // Ensure all required methods are present
     if (!hasExecute || !hasExecuteAndDisplay || !hasDisplay) {
         errorMessage = "missing required method overrides (execute, executeAndDisplay, display).";
         return false;
     }
 
+    // Check for factory function that will be used for linkage at runtime
     if (lowercaseContent.find("createalgorithm(") == std::string::npos) {
         errorMessage = "missing factory function 'createAlgorithm'.";
         return false;
@@ -181,40 +202,51 @@ bool InputManager::validateCustomAlgorithmFile(const std::string& filePath, std:
     return true;
 }
 
+// Helper: compile the custom algorithm .cpp file into a shared library
 bool InputManager::compileCustomAlgorithm(const std::string& filePath, std::string& compilerOutput, std::string& libraryPath) {
+    // Determine project root and include paths
     fs::path sourcePath(__FILE__);
     fs::path projectRoot = sourcePath.parent_path().parent_path().parent_path();
     fs::path includeDir = projectRoot / "include";
 
+    // Ensure output directory exists
     fs::path algorithmDir = projectRoot / "src" / "algorithm";
     std::error_code dirEc;
     fs::create_directories(algorithmDir, dirEc);
 
+    // Prepare output library path
     fs::path inputPath(filePath);
     std::string stem = inputPath.stem().string();
     if (stem.empty()) {
         stem = "custom_algorithm";
     }
+
+    // Sanitize stem to be filesystem-friendly
     std::replace_if(stem.begin(), stem.end(), [](unsigned char c) {
         return !std::isalnum(static_cast<unsigned char>(c)) && c != '_';
     }, '_');
 
-    fs::path libraryFile = algorithmDir / ("lib" + stem + "_custom.so");
+    // Remove any existing library file
+    fs::path libraryFile = algorithmDir / (stem + "_custom.so");
     std::error_code removeEc;
     fs::remove(libraryFile, removeEc);
 
+    // Log file for compiler output
     fs::path logPath = "raystruct_custom_algo.txt";
 
+    // Construct compilation command
     std::ostringstream cmdStream;
-    cmdStream << "g++ -std=c++20 -shared -fPIC -Wall -Wextra"
+    cmdStream << "g++ -std=c++17 -shared -fPIC -Wall -Wextra"
               << " -I\"" << includeDir.string() << "\""
               << " -I\"" << (projectRoot / "src").string() << "\""
               << " \"" << filePath << "\""
               << " -o \"" << libraryFile.string() << "\""
               << " >\"" << logPath.string() << "\" 2>&1";
 
+    // Execute compilation command
     int result = std::system(cmdStream.str().c_str());
 
+    // Read compiler output from log file
     compilerOutput.clear();
     {
         std::ifstream logStream(logPath);
@@ -225,18 +257,22 @@ bool InputManager::compileCustomAlgorithm(const std::string& filePath, std::stri
         }
     }
 
+    // Clean up log file
     std::error_code ec;
     fs::remove(logPath, ec);
 
+    // Check compilation result
     if (result != 0) {
         fs::remove(libraryFile, ec);
         return false;
     }
 
+    // Compilation succeeded
     libraryPath = libraryFile.string();
     return true;
 }
 
+// Public method: prompt user to select data structure
 InputManager::StructureSelection InputManager::selectStructure() {
     StructureSelection selection;
     DataStructureEnum structure = DataStructureEnum::UNKNOWN;
@@ -252,6 +288,7 @@ InputManager::StructureSelection InputManager::selectStructure() {
             break;
         }
 
+        // Parse structure and validate
         structure = parseStructure(input);
         if (structure == DataStructureEnum::UNKNOWN) {
             std::cout << "\nInvalid structure. Try again." << std::endl;
@@ -262,6 +299,7 @@ InputManager::StructureSelection InputManager::selectStructure() {
     return selection;
 }
 
+// Public method: prompt user to select algorithm based on chosen data structure
 InputManager::AlgorithmSelection InputManager::selectAlgorithm(DataStructureEnum structureType) {
     AlgorithmSelection selection;
     AlgorithmEnum algorithm = AlgorithmEnum::UNKNOWN;
@@ -270,6 +308,7 @@ InputManager::AlgorithmSelection InputManager::selectAlgorithm(DataStructureEnum
         return selection;
     }
 
+    // Prompt for algorithm selection based on structure type
     while (algorithm == AlgorithmEnum::UNKNOWN && !selection.shouldExit) {
         std::string input;
         switch (structureType) {
@@ -296,10 +335,12 @@ InputManager::AlgorithmSelection InputManager::selectAlgorithm(DataStructureEnum
             break;
         }
 
+        // Parse algorithm and validate
         algorithm = parseAlgorithm(input);
         if (algorithm == AlgorithmEnum::UNKNOWN) {
             std::cout << "\nInvalid algorithm. Try again." << std::endl;
         }
+        // Handle custom algorithm selection
         if (algorithm == AlgorithmEnum::CUSTOM) {
             std::cout << "\nSelected custom algorithm." << std::endl;
             std::cout << "Ensure your implementation derives from the Algorithm base class provided by RayStruct++." << std::endl;
@@ -314,14 +355,17 @@ InputManager::AlgorithmSelection InputManager::selectAlgorithm(DataStructureEnum
     return selection;
 }
 
+// Public method: create data structure instance using factory
 DataStructure* InputManager::createDataStructure(DataStructureEnum structureType) const {
     return DataStructureFactory::createDataStructure(structureType);
 }
 
-Algorithm* InputManager::createAlgorithm(const AlgorithmSelection& selection) const {
-    return AlgorithmFactory::createAlgorithm(selection.selectedAlgorithm, selection.customAlgorithmLibraryPath);
+// Public method: create algorithm instance using factory
+Algorithm* InputManager::createAlgorithm(const AlgorithmSelection& algorithmSelection) const {
+    return AlgorithmFactory::createAlgorithm(algorithmSelection.selectedAlgorithm, algorithmSelection.customAlgorithmLibraryPath);
 }
 
+// Public method: populate data structure with user-provided data
 bool InputManager::populateDS(DataStructure* ds, DataStructureEnum structureType) {
     bool shouldExit = false;
     std::string input;
@@ -329,6 +373,7 @@ bool InputManager::populateDS(DataStructure* ds, DataStructureEnum structureType
     if (structureType == DataStructureEnum::LIST || structureType == DataStructureEnum::HEAP) {
         std::cout << "\nInsert elements into structure ('done' to finish, 'rnd' to insert random elements, 'exit' to quit)" << std::endl;
         
+        // Input loop for inserting elements
         while (true) {
             std::cout << ">>> ";
             std::cin >> input;
@@ -354,6 +399,7 @@ bool InputManager::populateDS(DataStructure* ds, DataStructureEnum structureType
                 break;
             }
 
+            // Attempt to convert input to integer and insert
             try {
                 int value = std::stoi(input);
                 ds->insert(value);
@@ -370,6 +416,7 @@ bool InputManager::populateDS(DataStructure* ds, DataStructureEnum structureType
 
         graph->clear();
 
+        // Input loop for inserting vertices
         std::cout << "\nInsert vertices into the graph ('done' to finish, 'exit' to quit)" << std::endl;
         while (true) {
             std::cout << ">>> ";
@@ -383,6 +430,7 @@ bool InputManager::populateDS(DataStructure* ds, DataStructureEnum structureType
                 break;
             }
 
+            // Attempt to convert input to integer and insert vertex
             try {
                 int vertex = std::stoi(input);
                 graph->insert(vertex);
@@ -397,6 +445,7 @@ bool InputManager::populateDS(DataStructure* ds, DataStructureEnum structureType
             return shouldExit;
         }
 
+        // Input loop for inserting edges
         std::cout << "\nInsert edges as 'from to weight' (weight can be decimal)."
                      "\nType 'done' when finished, 'exit' to quit." << std::endl;
         while (true) {
@@ -420,6 +469,7 @@ bool InputManager::populateDS(DataStructure* ds, DataStructureEnum structureType
                 continue;
             }
 
+            // Attempt to convert and add edge
             try {
                 int from = std::stoi(input);
                 int to = std::stoi(toStr);
@@ -436,6 +486,7 @@ bool InputManager::populateDS(DataStructure* ds, DataStructureEnum structureType
             return shouldExit;
         }
 
+        // Input loop for adding heuristics
         std::cout << "\nWould you like to add heuristic values for A*? (y/n)" << std::endl;
         std::cout << ">>> ";
         std::cin >> input;
@@ -469,6 +520,7 @@ bool InputManager::populateDS(DataStructure* ds, DataStructureEnum structureType
                         continue;
                     }
 
+                    // Attempt to convert and set heuristic
                     try {
                         int vertex = std::stoi(input);
                         double heuristic = std::stod(valueStr);
@@ -483,6 +535,7 @@ bool InputManager::populateDS(DataStructure* ds, DataStructureEnum structureType
         }
     }
 
+    // Clear any remaining input
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
     return shouldExit;

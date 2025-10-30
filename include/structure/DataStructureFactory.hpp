@@ -8,5 +8,6 @@
 
 class DataStructureFactory {
 public:
+    // Factory method to create data structure instances based on the provided enum type
     static DataStructure* createDataStructure(DataStructureEnum type);
 };

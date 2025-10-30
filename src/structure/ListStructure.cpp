@@ -1,6 +1,7 @@
 // src/structure/ListStructure.cpp
 #include "../../include/structure/ListStructure.hpp"
 
+// Implementation of inherited ListStructure methods
 void ListStructure::insert(int value) {
     data.push_back(value);
 }

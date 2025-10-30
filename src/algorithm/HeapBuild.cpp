@@ -4,6 +4,7 @@
 #include <vector>
 #include <cmath>
 
+// Helper function to heapify a subtree rooted with node i
 void HeapBuild::heapify(std::vector<int>& elements, int n, int i, bool isMinHeap) {
     int extreme = i; // smallest (for min) or largest (for max)
     int left = 2 * i + 1;
@@ -31,6 +32,7 @@ void HeapBuild::heapify(std::vector<int>& elements, int n, int i, bool isMinHeap
     }
 }
 
+// Function to build a heap from the given elements
 void HeapBuild::buildHeap(std::vector<int>& elements, bool isMinHeap) {
     int n = elements.size();
 
@@ -40,6 +42,7 @@ void HeapBuild::buildHeap(std::vector<int>& elements, bool isMinHeap) {
     }
 }
 
+// Function to build heap with visual display after each step
 void HeapBuild::buildHeapVisual(std::vector<int>& elements, bool isMinHeap) {
     int n = elements.size();
     for (int i = n / 2 - 1; i >= 0; --i) {
@@ -48,6 +51,7 @@ void HeapBuild::buildHeapVisual(std::vector<int>& elements, bool isMinHeap) {
     }
 }
 
+// Function to display elements in a tree-like structure
 void HeapBuild::display(const std::vector<int>& elements) {
     int n = elements.size();
     int levels = std::floor(std::log2(n)) + 1;
@@ -71,11 +75,13 @@ void HeapBuild::display(const std::vector<int>& elements) {
     }
 }
 
+// Execute heap build without display
 void HeapBuild::execute(DataStructure* ds) {
     std::vector<int> elements = ds->getElements();
     buildHeap(elements, isMinHeap);
 }
 
+// Execute heap build with visual display
 void HeapBuild::executeAndDisplay(DataStructure* ds) {
     std::vector<int> elements = ds->getElements();
 
@@ -84,6 +90,7 @@ void HeapBuild::executeAndDisplay(DataStructure* ds) {
     display(elements);
 }
 
+// Setter for heap type
 void HeapBuild::setHeapType(bool type) {
     isMinHeap = type;
 }

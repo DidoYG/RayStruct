@@ -1,5 +1,6 @@
 // src/manager/BenchmarkManager.cpp
 #include "../../include/manager/BenchmarkManager.hpp"
+// OS specific includes
 #if defined(__linux__)
 #include <unistd.h>
 #elif defined(_WIN32)
@@ -7,14 +8,17 @@
 #include <psapi.h>
 #endif
 
+// Method for getting current RSS memory usage
 void BenchmarkManager::getCurrentRSSBytes() {
+// UNIX systems
 #if defined(__linux__)
-
+    // Read memory info from /proc/self/statm
     int tSize = 0, resident = 0, share = 0;
     std::ifstream buffer("/proc/self/statm");
     buffer >> tSize >> resident >> share;
     buffer.close();
 
+    // Calculate memory in kB
     const long pageSizeKb = sysconf(_SC_PAGE_SIZE) / 1024;
     const double rssKb = resident * pageSizeKb;
     const double sharedKb = share * pageSizeKb;
@@ -29,6 +33,7 @@ void BenchmarkManager::getCurrentRSSBytes() {
     lastSharedKb = sharedKb;
     lastPrivateKb = privateKb;
 
+// Windows systems
 #elif defined(_WIN32)
 
     PROCESS_MEMORY_COUNTERS_EX pmc;
@@ -55,15 +60,17 @@ void BenchmarkManager::getLastRssBytes() {
     std::cout << "[Linux] Private Memory - " << lastPrivateKb << " kB\n";
 }
 
+// Run benchmark on given data structure and algorithm
 void BenchmarkManager::runBenchmark(DataStructure* ds, Algorithm* algo) {
     std::cout << "\nBenchmark Metrics =>" << std::endl;
 
     getLastRssBytes();
-    auto start = std::chrono::high_resolution_clock::now();
+    auto start = std::chrono::high_resolution_clock::now(); // start timing
     algo->execute(ds); // polymorphic call
-    auto end = std::chrono::high_resolution_clock::now();
+    auto end = std::chrono::high_resolution_clock::now(); // end timing
     getCurrentRSSBytes();
 
+    // Calculate execution time in milliseconds
     double executionTimeMs = std::chrono::duration<double, std::milli>(end - start).count();
     std::cout << "\nExecution time: " << executionTimeMs << "ms\n";
 

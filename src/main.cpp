@@ -1,3 +1,4 @@
+// src/main.cpp
 #include <cstdlib>
 #include "../include/manager/InputManager.hpp"
 #include "../include/manager/BenchmarkManager.hpp"
@@ -6,6 +7,7 @@
 #include "../include/algorithm/Prims.hpp"
 #include "../include/algorithm/AlgorithmFactory.hpp"
 
+// Function to clear the console screen
 void clearConsole() {
 #ifdef _WIN32
     std::system("cls");
@@ -14,6 +16,7 @@ void clearConsole() {
 #endif
 }
 
+// Entry point of the application
 int main() {
     bool shouldExit = false;
 
@@ -81,7 +84,8 @@ int main() {
                 std::cout << "\nFailed to create algorithm instance." << std::endl;
                 continue;
             }
-
+            
+            // Handle algorithm-specific parameters
             if (algorithmSelection.selectedAlgorithm == AlgorithmEnum::HEAP_BUILD) {
                 std::string heapType;
 
@@ -89,6 +93,7 @@ int main() {
                     std::cout << "\nSelect heap type (min/max)" << std::endl;
                     std::cout << ">>> ";
                     std::cin >> heapType;
+                    // Ignore remaining input to avoid issues
                     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                     
                     HeapBuild* heapBuild = dynamic_cast<HeapBuild*>(algo);
@@ -115,6 +120,7 @@ int main() {
                     std::cout << "\nEnter k" << std::endl;
                     std::cout << ">>> ";
                     std::cin >> k;
+                    // Ignore remaining input to avoid issues
                     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
                     HeapSelection* heapSelect = dynamic_cast<HeapSelection*>(algo);
@@ -158,6 +164,7 @@ int main() {
                     std::cout << "\nEnter start vertex id for A* ('exit' to quit)" << std::endl;
                     std::cout << ">>> ";
                     std::cin >> vertexInput;
+                    // Ignore remaining input to avoid issues
                     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
                     if (vertexInput == "exit") {
@@ -189,6 +196,7 @@ int main() {
                     std::cout << "\nEnter goal vertex id for A* ('exit' to quit)" << std::endl;
                     std::cout << ">>> ";
                     std::cin >> vertexInput;
+                    // Ignore remaining input to avoid issues
                     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
                     if (vertexInput == "exit") {
@@ -236,6 +244,7 @@ int main() {
                     std::cout << "\nEnter starting vertex id for Prim's (or type 'auto' to auto-select, 'exit' to quit)" << std::endl;
                     std::cout << ">>> ";
                     std::cin >> vertexInput;
+                    // Ignore remaining input to avoid issues
                     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
                     if (vertexInput == "exit") {
@@ -274,8 +283,10 @@ int main() {
             }
 
             clearConsole();
+            // Run benchmark
             benchmarkManager.runBenchmark(ds, algo);
 
+            // Display operations/results if applicable
             if (algorithmSelection.selectedAlgorithm != AlgorithmEnum::HEAP_SELECTION && algorithmSelection.selectedAlgorithm != AlgorithmEnum::A_STAR && algorithmSelection.selectedAlgorithm != AlgorithmEnum::PRIMS) {
                 if (ds && algo && ds->getElements().size() <= 20) {
                     std::cout << "\nOperations: " << std::endl;
@@ -299,6 +310,7 @@ int main() {
                 break;
             }
 
+            // Convert input to lowercase for comparison
             std::transform(input.begin(), input.end(), input.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
             if (input == "y" || input == "yes") {
@@ -321,6 +333,7 @@ int main() {
     if (ds) delete ds;
     if (algo) delete algo;
 
+    // Cleanup any loaded custom algorithm libraries
     AlgorithmFactory::cleanupCustomLibraries();
 
     return 0;

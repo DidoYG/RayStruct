@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 
+// Displays the elements of the vector
 void InsertionSort::display(const std::vector<int>& elements) {
     for (const int& val : elements) {
         std::cout << val << " ";
@@ -10,8 +11,10 @@ void InsertionSort::display(const std::vector<int>& elements) {
     std::cout << std::endl;
 }
 
+// Executes the insertion sort algorithm on the data structure
 void InsertionSort::execute(DataStructure* ds) {
     std::vector<int> elements = ds->getElements();
+    // Insertion Sort Algorithm
     for (int i = 1; i < elements.size(); ++i) {
         int key = elements[i];
         int j = i - 1;
@@ -23,11 +26,13 @@ void InsertionSort::execute(DataStructure* ds) {
     }
 }
 
+// Executes the insertion sort algorithm and displays each step
 void InsertionSort::executeAndDisplay(DataStructure* ds) {
     std::vector<int> elements = ds->getElements();
     
     display(elements);
-
+    
+    // Insertion Sort Algorithm with display
     for (int i = 1; i < elements.size(); ++i) {
         int key = elements[i];
         int j = i - 1;

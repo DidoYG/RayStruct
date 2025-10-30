@@ -1,3 +1,4 @@
+// src/algorithm/AStar.cpp
 #include "../../include/algorithm/AStar.hpp"
 #include <algorithm>
 #include <functional>
@@ -8,16 +9,19 @@
 #include <unordered_set>
 
 namespace {
+// Helper struct for priority queue
 struct NodeEntry {
     int vertex;
     double fScore;
 
+    // Comparison operator for priority queue
     bool operator>(const NodeEntry& other) const {
         return fScore > other.fScore;
     }
 };
 } // namespace
 
+// Public helper methods
 void AStar::setStart(int start) {
     startVertex = start;
 }
@@ -34,6 +38,7 @@ double AStar::getPathCost() const {
     return totalCost;
 }
 
+// Overrides from Algorithm
 void AStar::execute(DataStructure* ds) {
     auto* graph = dynamic_cast<GraphStructure*>(ds);
     path.clear();
@@ -58,6 +63,7 @@ void AStar::executeAndDisplay(DataStructure* ds) {
     std::cout << "Total cost: " << totalCost << std::endl;
 }
 
+// Display method
 void AStar::display(const std::vector<int>& elements) {
     for (std::size_t i = 0; i < elements.size(); ++i) {
         std::cout << elements[i];
@@ -68,7 +74,9 @@ void AStar::display(const std::vector<int>& elements) {
     std::cout << std::endl;
 }
 
+// Main A* algorithm logic
 void AStar::run(GraphStructure* graph) {
+    // Preliminary checks
     if (startVertex == -1 || goalVertex == -1) {
         return;
     }
@@ -76,9 +84,11 @@ void AStar::run(GraphStructure* graph) {
         return;
     }
 
+    // A* algorithm implementation
     const auto& adjacency = graph->getAdjacency();
     const double inf = std::numeric_limits<double>::infinity();
 
+    // Score maps
     std::unordered_map<int, double> gScore;
     std::unordered_map<int, double> fScore;
     std::unordered_map<int, int> cameFrom;
@@ -88,35 +98,43 @@ void AStar::run(GraphStructure* graph) {
         fScore[vertex] = inf;
     }
 
+    // Initialize start vertex
     gScore[startVertex] = 0.0;
     fScore[startVertex] = graph->getHeuristic(startVertex);
 
+    // Priority queue for open set
     std::priority_queue<NodeEntry, std::vector<NodeEntry>, std::greater<NodeEntry>> openSet;
     openSet.push({startVertex, fScore[startVertex]});
 
     std::unordered_set<int> closedSet;
 
+    // Main loop
     while (!openSet.empty()) {
+        // Get the node in openSet with the lowest fScore
         NodeEntry currentEntry = openSet.top();
         openSet.pop();
         int current = currentEntry.vertex;
 
+        // Check if we reached the goal
         if (current == goalVertex) {
             totalCost = gScore[current];
             reconstructPath(goalVertex, cameFrom);
             return;
         }
 
+        // Skip if already evaluated
         if (closedSet.find(current) != closedSet.end()) {
             continue;
         }
         closedSet.insert(current);
 
+        // Explore neighbors
         auto neighborsIt = adjacency.find(current);
         if (neighborsIt == adjacency.end()) {
             continue;
         }
 
+        // For each neighbor of current
         for (const auto& [neighbor, weight] : neighborsIt->second) {
             double tentativeG = gScore[current] + weight;
             if (tentativeG < gScore[neighbor]) {
@@ -135,15 +153,18 @@ void AStar::run(GraphStructure* graph) {
     totalCost = inf;
 }
 
+// Reconstruct path from cameFrom map
 void AStar::reconstructPath(int goal, const std::unordered_map<int, int>& cameFrom) {
     path.clear();
     path.push_back(goal);
 
+    // Backtrack from goal to start
     auto it = cameFrom.find(goal);
     while (it != cameFrom.end()) {
         path.push_back(it->second);
         it = cameFrom.find(it->second);
     }
 
+    // Reverse to get path from start to goal
     std::reverse(path.begin(), path.end());
 }

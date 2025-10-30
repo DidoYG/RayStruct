@@ -6,10 +6,10 @@ class DataStructure {
 public:
     virtual ~DataStructure() = default;
 
-    // Basic modification
+    // Basic operations
     virtual void insert(int value) = 0;    // always at start
-    virtual void remove(int value) = 0;    // some may ignore if not supported
+    virtual void remove(int value) = 0;
 
-    // Visualization support
+    // Retrieval operation used when displaying contents
     virtual std::vector<int> getElements() const = 0;
 };

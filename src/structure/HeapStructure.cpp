@@ -1,6 +1,7 @@
 // src/structure/HeapStructure.cpp
 #include "../../include/structure/HeapStructure.hpp"
 
+// Implementation of inherited HeapStructure methods
 void HeapStructure::insert(int value) {
     data.push_back(value);
 }

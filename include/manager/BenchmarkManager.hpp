@@ -11,13 +11,17 @@
 
 class BenchmarkManager {
 private:
+    // Resource usage tracking
     double lastRSSKb = 0, lastSharedKb = 0, lastPrivateKb = 0;
 
+    // Helper functions for resource tracking
     void getCurrentRSSBytes();
     void getLastRssBytes();
     
 public:
+    // Constructor
     BenchmarkManager() = default;
 
+    // Run benchmark on given data structure and algorithm
     void runBenchmark(DataStructure* ds, Algorithm* algo);
 };
