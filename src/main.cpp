@@ -2,10 +2,6 @@
 #include <cstdlib>
 #include "../include/manager/InputManager.hpp"
 #include "../include/manager/BenchmarkManager.hpp"
-#include "../include/structure/GraphStructure.hpp"
-#include "../include/algorithm/AStar.hpp"
-#include "../include/algorithm/Prims.hpp"
-#include "../include/algorithm/AlgorithmFactory.hpp"
 
 // Function to clear the console screen
 void clearConsole() {
@@ -48,7 +44,7 @@ int main() {
             continue;
         }
 
-        ds = inputManager.createDataStructure(structureSelection.selectedStructure);
+        ds = inputManager.createDataStructure(structureSelection);
         if (!ds) {
             std::cout << "\nFailed to create data structure instance." << std::endl;
             continue;
@@ -282,7 +278,7 @@ int main() {
                 primsAlgo->setStart(startVertex);
             }
 
-            clearConsole();
+            //clearConsole();
             // Run benchmark
             benchmarkManager.runBenchmark(ds, algo);
 
@@ -316,14 +312,14 @@ int main() {
             if (input == "y" || input == "yes") {
                 delete algo;
                 algo = nullptr;
-                clearConsole();
+                //clearConsole();
                 continue;
             }
 
             reuseStructure = false;
             delete algo;
             algo = nullptr;
-            clearConsole();
+            //clearConsole();
         }
 
         if (shouldExit) break;
@@ -334,6 +330,7 @@ int main() {
     if (algo) delete algo;
 
     // Cleanup any loaded custom algorithm libraries
+    DataStructureFactory::cleanupCustomLibraries();
     AlgorithmFactory::cleanupCustomLibraries();
 
     return 0;

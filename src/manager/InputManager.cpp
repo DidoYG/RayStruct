@@ -52,6 +52,205 @@ AlgorithmEnum InputManager::parseAlgorithm(const std::string& input) {
     return AlgorithmEnum::UNKNOWN;
 }
 
+// Helper: prompt user for custom data structure file path and handle compilation
+bool InputManager::promptCustomStructurePath(std::string& outPath, std::string& compilerOutput, std::string& libraryPath) {
+    while (true) {
+        std::cout << "\nEnter the path to your custom data structure .cpp file ('exit' to quit)" << std::endl;
+        std::cout << ">>> ";
+
+        std::string rawPath;
+        std::getline(std::cin, rawPath);
+        rawPath = trim(rawPath);
+
+        if (rawPath.empty()) {
+            std::cout << "\nPath cannot be empty. Try again." << std::endl;
+            continue;
+        }
+
+        if (rawPath == "exit") {
+            return false;
+        }
+
+        // Check if file exists and is a regular file
+        fs::path candidate(rawPath);
+        std::error_code ec;
+        if (!fs::exists(candidate, ec) || ec) {
+            std::cout << "\nFile not found: " << rawPath << "\nPlease provide a valid path." << std::endl;
+            continue;
+        }
+
+        if (!fs::is_regular_file(candidate, ec) || ec) {
+            std::cout << "\nProvided path is not a regular file. Try again." << std::endl;
+            continue;
+        }
+
+        // Ensure it's a .cpp file
+        std::string extension = candidate.extension().string();
+        std::transform(extension.begin(), extension.end(), extension.begin(), [](unsigned char c) {
+            return static_cast<char>(std::tolower(c));
+        });
+        if (extension != ".cpp") {
+            std::cout << "\nCustom data structure must be provided as a .cpp file. Try again." << std::endl;
+            continue;
+        }
+
+        // Normalize path
+        fs::path normalized = candidate;
+        if (candidate.is_relative()) {
+            auto absolutePath = fs::absolute(candidate, ec);
+            if (!ec) normalized = absolutePath.lexically_normal();
+        } else {
+            normalized = candidate.lexically_normal();
+        }
+
+        // Validate file contents
+        std::string validationError;
+        if (!validateCustomStructureFile(normalized.string(), validationError)) {
+            std::cout << "\nCustom data structure file failed validation: " << validationError << std::endl;
+            std::cout << "Please adjust the file and try again." << std::endl;
+            continue;
+        }
+
+        // Compile
+        std::string compileOutput;
+        std::string compiledLibraryPath;
+        if (!compileCustomStructure(normalized.string(), compileOutput, compiledLibraryPath)) {
+            std::cout << "\nCompilation of custom data structure failed." << std::endl;
+            if (!compileOutput.empty()) std::cout << compileOutput << std::endl;
+            std::cout << "Please address the compiler errors and try again." << std::endl;
+            continue;
+        }
+
+        // Compilation succeeded
+        if (!compileOutput.empty()) {
+            std::cout << "\nCompilation succeeded with messages:\n" << compileOutput << std::endl;
+        } else {
+            std::cout << "\nCompilation succeeded with no warnings." << std::endl;
+        }
+
+        // Output results
+        outPath = normalized.string();
+        compilerOutput = compileOutput;
+        libraryPath = compiledLibraryPath;
+        std::cout << "\nCustom data structure path accepted: " << outPath << std::endl;
+        std::cout << "Generated shared library: " << libraryPath << std::endl;
+        return true;
+    }
+}
+
+// Helper: validate the contents of the custom data structure file
+bool InputManager::validateCustomStructureFile(const std::string& filePath, std::string& errorMessage) {
+    std::ifstream file(filePath);
+    if (!file.is_open()) {
+        errorMessage = "unable to open file.";
+        return false;
+    }
+
+    std::ostringstream buffer;
+    buffer << file.rdbuf();
+    std::string content = buffer.str();
+    if (content.empty()) {
+        errorMessage = "file appears to be empty.";
+        return false;
+    }
+
+    // Convert to lowercase for uniform checking
+    std::string lowercaseContent = content;
+    std::transform(lowercaseContent.begin(), lowercaseContent.end(), lowercaseContent.begin(), [](unsigned char c) {
+        return static_cast<char>(std::tolower(c));
+    });
+
+    // Check for required include
+    if (lowercaseContent.find("datastructure.hpp") == std::string::npos) {
+        errorMessage = "missing include for DataStructure.hpp.";
+        return false;
+    }
+
+    // Ensure class inherits from DataStructure
+    if (lowercaseContent.find("public datastructure") == std::string::npos) {
+        errorMessage = "no class derives from the DataStructure base class (expecting 'public DataStructure').";
+        return false;
+    }
+
+    // Required method overrides
+    bool hasInsert = lowercaseContent.find("void insert(") != std::string::npos;
+    bool hasRemove = lowercaseContent.find("void remove(") != std::string::npos;
+    bool hasGetElements = lowercaseContent.find("getelements(") != std::string::npos;
+
+    if (!hasInsert || !hasRemove || !hasGetElements) {
+        errorMessage = "missing required method overrides (insert, remove, getElements).";
+        return false;
+    }
+
+    // Check for factory method
+    if (lowercaseContent.find("createdatastructure(") == std::string::npos) {
+        errorMessage = "missing factory function 'createDataStructure'.";
+        return false;
+    }
+
+    return true;
+}
+
+// Helper: compile the custom data structure .cpp file into a shared library
+bool InputManager::compileCustomStructure(const std::string& filePath, std::string& compilerOutput, std::string& libraryPath) {
+    fs::path sourcePath(__FILE__);
+    fs::path projectRoot = sourcePath.parent_path().parent_path().parent_path();
+    fs::path includeDir = projectRoot / "include";
+
+    // Ensure output directory exists
+    fs::path dsDir = projectRoot / "src" / "structure";
+    std::error_code dirEc;
+    fs::create_directories(dsDir, dirEc);
+
+    // Prepare output path
+    fs::path inputPath(filePath);
+    std::string stem = inputPath.stem().string();
+    if (stem.empty()) stem = "custom_datastructure";
+
+    // Sanitize filename
+    std::replace_if(stem.begin(), stem.end(), [](unsigned char c) {
+        return !std::isalnum(static_cast<unsigned char>(c)) && c != '_';
+    }, '_');
+
+    fs::path libraryFile = dsDir / (stem + "_custom.so");
+    std::error_code removeEc;
+    fs::remove(libraryFile, removeEc);
+
+    fs::path logPath = "raystruct_custom_ds.txt";
+
+    // Build g++ command
+    std::ostringstream cmdStream;
+    cmdStream << "g++ -std=c++17 -shared -fPIC -Wall -Wextra"
+              << " -I\"" << includeDir.string() << "\""
+              << " -I\"" << (projectRoot / "src").string() << "\""
+              << " \"" << filePath << "\""
+              << " -o \"" << libraryFile.string() << "\""
+              << " >\"" << logPath.string() << "\" 2>&1";
+
+    int result = std::system(cmdStream.str().c_str());
+
+    // Read compiler output
+    compilerOutput.clear();
+    {
+        std::ifstream logStream(logPath);
+        if (logStream.is_open()) {
+            std::ostringstream oss;
+            oss << logStream.rdbuf();
+            compilerOutput = oss.str();
+        }
+    }
+
+    fs::remove(logPath, removeEc);
+
+    if (result != 0) {
+        fs::remove(libraryFile, removeEc);
+        return false;
+    }
+
+    libraryPath = libraryFile.string();
+    return true;
+}
+
 // Helper: prompt user for custom algorithm file path and handle compilation
 bool InputManager::promptCustomAlgorithmPath(std::string& outPath, std::string& compilerOutput, std::string& libraryPath) {
     while (true) {
@@ -293,6 +492,14 @@ InputManager::StructureSelection InputManager::selectStructure() {
         if (structure == DataStructureEnum::UNKNOWN) {
             std::cout << "\nInvalid structure. Try again." << std::endl;
         }
+        if (structure == DataStructureEnum::CUSTOM) {
+            std::cout << "\nSelected custom algorithm." << std::endl;
+            std::cout << "Ensure your implementation derives from the Algorithm base class provided by RayStruct++." << std::endl;
+            if (!promptCustomStructurePath(selection.customStructurePath, selection.customStructureCompileOutput, selection.customStructureLibraryPath)) {
+               selection.shouldExit = true;
+               structure = DataStructureEnum::UNKNOWN;  
+            }
+        }
     }
 
     selection.selectedStructure = structure;
@@ -303,6 +510,7 @@ InputManager::StructureSelection InputManager::selectStructure() {
 InputManager::AlgorithmSelection InputManager::selectAlgorithm(DataStructureEnum structureType) {
     AlgorithmSelection selection;
     AlgorithmEnum algorithm = AlgorithmEnum::UNKNOWN;
+    bool shouldSkipSelection = false;
 
     if (structureType == DataStructureEnum::UNKNOWN) {
         return selection;
@@ -324,21 +532,28 @@ InputManager::AlgorithmSelection InputManager::selectAlgorithm(DataStructureEnum
                 std::cout << "\nSelect algorithm (A*, Prim, Custom)" << std::endl;
                 std::cout << ">>> ";
                 break;
+            case DataStructureEnum::CUSTOM:
+                shouldSkipSelection = true;
+                algorithm = AlgorithmEnum::CUSTOM;
+                break;
             default:
                 break;
         }
 
-        std::getline(std::cin, input);
+        // Skip algorithm selection if the selected structure is Custom
+        if (!shouldSkipSelection) {
+            std::getline(std::cin, input);
 
-        if (input == "exit") {
-            selection.shouldExit = true;
-            break;
-        }
+            if (input == "exit") {
+                selection.shouldExit = true;
+                break;
+            }
 
-        // Parse algorithm and validate
-        algorithm = parseAlgorithm(input);
-        if (algorithm == AlgorithmEnum::UNKNOWN) {
-            std::cout << "\nInvalid algorithm. Try again." << std::endl;
+            // Parse algorithm and validate
+            algorithm = parseAlgorithm(input);
+            if (algorithm == AlgorithmEnum::UNKNOWN) {
+                std::cout << "\nInvalid algorithm. Try again." << std::endl;
+            }
         }
         // Handle custom algorithm selection
         if (algorithm == AlgorithmEnum::CUSTOM) {
@@ -356,13 +571,13 @@ InputManager::AlgorithmSelection InputManager::selectAlgorithm(DataStructureEnum
 }
 
 // Public method: create data structure instance using factory
-DataStructure* InputManager::createDataStructure(DataStructureEnum structureType) const {
-    return DataStructureFactory::createDataStructure(structureType);
+DataStructure* InputManager::createDataStructure(const StructureSelection& selection) const {
+    return DataStructureFactory::createDataStructure(selection.selectedStructure, selection.customStructureLibraryPath);
 }
 
 // Public method: create algorithm instance using factory
-Algorithm* InputManager::createAlgorithm(const AlgorithmSelection& algorithmSelection) const {
-    return AlgorithmFactory::createAlgorithm(algorithmSelection.selectedAlgorithm, algorithmSelection.customAlgorithmLibraryPath);
+Algorithm* InputManager::createAlgorithm(const AlgorithmSelection& selection) const {
+    return AlgorithmFactory::createAlgorithm(selection.selectedAlgorithm, selection.customAlgorithmLibraryPath);
 }
 
 // Public method: populate data structure with user-provided data
@@ -370,7 +585,7 @@ bool InputManager::populateDS(DataStructure* ds, DataStructureEnum structureType
     bool shouldExit = false;
     std::string input;
 
-    if (structureType == DataStructureEnum::LIST || structureType == DataStructureEnum::HEAP) {
+    if (structureType == DataStructureEnum::LIST || structureType == DataStructureEnum::HEAP || structureType == DataStructureEnum::CUSTOM) {
         std::cout << "\nInsert elements into structure ('done' to finish, 'rnd' to insert random elements, 'exit' to quit)" << std::endl;
         
         // Input loop for inserting elements
