@@ -68,7 +68,7 @@ void HeapBuild::display(const std::vector<int>& elements) {
         for (int j = 0; j < levelCount && index < n; ++j, ++index) {
             std::cout << elements[index] << " ";
             for (int s = 0; s < spaces; ++s)
-                std::cout << " ";
+                std::cout << "  ";
         }
 
         std::cout << "\n\n";

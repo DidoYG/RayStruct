@@ -296,7 +296,7 @@ int main() {
 
             // Display operations/results if applicable
             if (algorithmSelection.selectedAlgorithm != AlgorithmEnum::HEAP_SELECTION && algorithmSelection.selectedAlgorithm != AlgorithmEnum::A_STAR && algorithmSelection.selectedAlgorithm != AlgorithmEnum::PRIMS) {
-                if (ds && algo && ds->getElements().size() <= 20) {
+                if (ds && algo && ds->getElements().size() <= 10) {
                     std::cout << "\nOperations: " << std::endl;
                     algo->executeAndDisplay(ds);
                 }

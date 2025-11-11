@@ -39,7 +39,7 @@ bool shouldOwnDSLibraryFile(const std::string& pathStr) {
     }
 
     auto parent = path.parent_path().filename();
-    return parent == "datastructure";
+    return parent == "structure";
 }
 } // namespace
 

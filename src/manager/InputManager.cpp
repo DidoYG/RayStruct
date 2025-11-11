@@ -716,7 +716,7 @@ bool InputManager::populateDS(DataStructure* ds, DataStructureEnum structureType
                         double heuristic = std::stod(valueStr);
                         graph->setHeuristic(vertex, heuristic);
                     } catch (const std::invalid_argument&) {
-                        std::cout << "\nInvalid heuristic input. Please use an integer vertex and numeric value." << std::endl;
+                        std::cout << "\nInvalid heuristic input. Please use an integer vertex and heuristic value." << std::endl;
                     } catch (const std::out_of_range&) {
                         std::cout << "\nHeuristic input out of range. Try smaller numbers." << std::endl;
                     }
