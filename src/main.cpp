@@ -22,6 +22,7 @@ int main() {
     DataStructure* ds = nullptr;
     Algorithm* algo = nullptr;
 
+    clearConsole();
     std::cout << "RayStruct++: Structures and Algorithms Benchmarking Tool" << std::endl;
     std::cout << "Type 'exit' at any point to quit." << std::endl;
 
@@ -53,7 +54,7 @@ int main() {
         shouldExit = inputManager.populateDS(ds, structureSelection.selectedStructure);
         if (shouldExit) break;
 
-        if (ds->getElements().size() < 2) {
+        if (ds->getElements().size() < 3) {
             std::cout << "\nData structure size is too small. Cannot run benchmark." << std::endl;
             continue;
         }
@@ -106,16 +107,34 @@ int main() {
                 }
             } else if (algorithmSelection.selectedAlgorithm == AlgorithmEnum::HEAP_SELECTION) {
                 std::string choice;
+                std::string tmp;
                 int k;
+                bool isSmallest = true;
 
                 while (true) {
                     std::cout << "\nFind k-th (smallest/largest)" << std::endl;
                     std::cout << ">>> ";
                     std::cin >> choice;
 
-                    std::cout << "\nEnter k" << std::endl;
-                    std::cout << ">>> ";
-                    std::cin >> k;
+                    if (choice == "smallest") {
+                        isSmallest = true;
+                    } else if (choice == "largest") {
+                        isSmallest = false;
+                    } else {
+                        std::cout << "\nInvalid option. Please enter 'smallest' or 'largest'.\n";
+                        continue;
+                    }
+
+                    try {
+                        std::cout << "\nEnter k" << std::endl;
+                        std::cout << ">>> ";
+                        std::cin >> tmp;
+                        k = std::stoi(tmp);
+                    } catch (const std::invalid_argument&) {
+                        std::cout << "\nInvalid input. Please enter an integer." << std::endl;
+                        continue;
+                    }
+
                     // Ignore remaining input to avoid issues
                     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
@@ -127,16 +146,9 @@ int main() {
                     }
 
                     heapSelect->setK(k);
+                    heapSelect->setIsSmallest(isSmallest);
+                    break;
                     
-                    if (choice == "smallest") {
-                        heapSelect->setIsSmallest(true);
-                        break;
-                    } else if (choice == "largest") {
-                        heapSelect->setIsSmallest(false);
-                        break;
-                    } else {
-                        std::cout << "\nInvalid option. Please enter 'smallest' or 'largest'.\n";
-                    }
                 }
             } else if (algorithmSelection.selectedAlgorithm == AlgorithmEnum::A_STAR) {
                 auto* graph = dynamic_cast<GraphStructure*>(ds);

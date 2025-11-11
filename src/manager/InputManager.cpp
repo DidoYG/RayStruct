@@ -162,13 +162,13 @@ bool InputManager::validateCustomStructureFile(const std::string& filePath, std:
 
     // Check for required include
     if (lowercaseContent.find("datastructure.hpp") == std::string::npos) {
-        errorMessage = "missing include for DataStructure.hpp.";
+        errorMessage = "missing include for 'DataStructure.hpp'";
         return false;
     }
 
     // Ensure class inherits from DataStructure
     if (lowercaseContent.find("public datastructure") == std::string::npos) {
-        errorMessage = "no class derives from the DataStructure base class (expecting 'public DataStructure').";
+        errorMessage = "no class derives from the 'DataStructure' base class (expecting 'public DataStructure').";
         return false;
     }
 
@@ -184,7 +184,7 @@ bool InputManager::validateCustomStructureFile(const std::string& filePath, std:
 
     // Check for factory method
     if (lowercaseContent.find("createdatastructure(") == std::string::npos) {
-        errorMessage = "missing factory function 'createDataStructure'.";
+        errorMessage = "missing factory function 'createDataStructure'";
         return false;
     }
 
@@ -370,14 +370,14 @@ bool InputManager::validateCustomAlgorithmFile(const std::string& filePath, std:
     // Check for required elements
     // Check for include of Algorithm.hpp
     if (lowercaseContent.find("algorithm.hpp") == std::string::npos) {
-        errorMessage = "missing include for Algorithm.hpp.";
+        errorMessage = "missing include for 'Algorithm.hpp'";
         return false;
     }
 
     // Check for class deriving from Algorithm
     bool inheritsFromAlgorithm = lowercaseContent.find("public algorithm") != std::string::npos;
     if (!inheritsFromAlgorithm) {
-        errorMessage = "no class derives from the Algorithm base class (expecting 'public Algorithm').";
+        errorMessage = "no class derives from the 'Algorithm' base class (expecting 'public Algorithm').";
         return false;
     }
 
@@ -394,7 +394,7 @@ bool InputManager::validateCustomAlgorithmFile(const std::string& filePath, std:
 
     // Check for factory function that will be used for linkage at runtime
     if (lowercaseContent.find("createalgorithm(") == std::string::npos) {
-        errorMessage = "missing factory function 'createAlgorithm'.";
+        errorMessage = "missing factory function 'createAlgorithm'";
         return false;
     }
 
@@ -493,8 +493,8 @@ InputManager::StructureSelection InputManager::selectStructure() {
             std::cout << "\nInvalid structure. Try again." << std::endl;
         }
         if (structure == DataStructureEnum::CUSTOM) {
-            std::cout << "\nSelected custom algorithm." << std::endl;
-            std::cout << "Ensure your implementation derives from the Algorithm base class provided by RayStruct++." << std::endl;
+            std::cout << "\nSelected custom data structure." << std::endl;
+            std::cout << "Ensure your implementation derives from the 'DataStructure' base class provided by RayStruct++." << std::endl;
             if (!promptCustomStructurePath(selection.customStructurePath, selection.customStructureCompileOutput, selection.customStructureLibraryPath)) {
                selection.shouldExit = true;
                structure = DataStructureEnum::UNKNOWN;  
@@ -558,7 +558,7 @@ InputManager::AlgorithmSelection InputManager::selectAlgorithm(DataStructureEnum
         // Handle custom algorithm selection
         if (algorithm == AlgorithmEnum::CUSTOM) {
             std::cout << "\nSelected custom algorithm." << std::endl;
-            std::cout << "Ensure your implementation derives from the Algorithm base class provided by RayStruct++." << std::endl;
+            std::cout << "Ensure your implementation derives from the 'Algorithm' base class provided by RayStruct++." << std::endl;
             if (!promptCustomAlgorithmPath(selection.customAlgorithmPath, selection.customAlgorithmCompileOutput, selection.customAlgorithmLibraryPath)) {
                 selection.shouldExit = true;
                 algorithm = AlgorithmEnum::UNKNOWN;
@@ -602,9 +602,13 @@ bool InputManager::populateDS(DataStructure* ds, DataStructureEnum structureType
                 std::mt19937 gen(rd());
                 std::uniform_int_distribution<> dist(0, 100000);
 
-                for (int i = 0; i < std::stoi(input); ++i) {
-                    int randomValue = dist(gen);
-                    ds->insert(randomValue);
+                try {
+                    for (int i = 0; i < std::stoi(input); ++i) {
+                        int randomValue = dist(gen);
+                        ds->insert(randomValue);
+                    }
+                } catch (const std::invalid_argument&) {
+                    std::cout << "\nInvalid input. Please enter an integer." << std::endl;
                 }
 
                 break;
@@ -631,37 +635,8 @@ bool InputManager::populateDS(DataStructure* ds, DataStructureEnum structureType
 
         graph->clear();
 
-        // Input loop for inserting vertices
-        std::cout << "\nInsert vertices into the graph ('done' to finish, 'exit' to quit)" << std::endl;
-        while (true) {
-            std::cout << ">>> ";
-            std::cin >> input;
-
-            if (input == "done") {
-                break;
-            }
-            if (input == "exit") {
-                shouldExit = true;
-                break;
-            }
-
-            // Attempt to convert input to integer and insert vertex
-            try {
-                int vertex = std::stoi(input);
-                graph->insert(vertex);
-            } catch (const std::invalid_argument&) {
-                std::cout << "\nInvalid vertex id. Please enter an integer or one of the commands." << std::endl;
-            } catch (const std::out_of_range&) {
-                std::cout << "\nVertex id out of range. Try a smaller value." << std::endl;
-            }
-        }
-
-        if (shouldExit) {
-            return shouldExit;
-        }
-
-        // Input loop for inserting edges
-        std::cout << "\nInsert edges as 'from to weight' (weight can be decimal)."
+        // Input loop for inserting vertices and edges
+        std::cout << "\nInsert vertices and edges in the form: 'from' 'to' 'weight'"
                      "\nType 'done' when finished, 'exit' to quit." << std::endl;
         while (true) {
             std::cout << ">>> ";
@@ -691,7 +666,7 @@ bool InputManager::populateDS(DataStructure* ds, DataStructureEnum structureType
                 double weight = std::stod(weightStr);
                 graph->addEdge(from, to, weight, true);
             } catch (const std::invalid_argument&) {
-                std::cout << "\nInvalid edge input. Please use integers for vertices and numeric weights." << std::endl;
+                std::cout << "\nInvalid edge input. Please use integers for vertices and weights." << std::endl;
             } catch (const std::out_of_range&) {
                 std::cout << "\nEdge values out of range. Try smaller numbers." << std::endl;
             }
