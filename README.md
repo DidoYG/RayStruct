@@ -1,4 +1,4 @@
-⚡️ RayStruct++
+# RayStruct++
 
 RayStruct++ is a modern C++17 command-line benchmarking tool for evaluating and comparing the performance of classical algorithms and data structures.
 It allows users to run built-in benchmarks, measure execution time and memory usage, and even upload and execute custom algorithm implementations dynamically.
