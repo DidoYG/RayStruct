@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <iostream>
 
-class SimpleArray : public DataStructure {
+class Array : public DataStructure {
     std::vector<int> elements;
 
 public:
@@ -20,9 +20,13 @@ public:
     std::vector<int> getElements() const override {
         return elements;
     }
+
+    std::string getName() const override {
+        return "Array";
+    }
 };
 
 // Factory function for dynamic loading
 extern "C" DataStructure* createDataStructure() {
-    return new SimpleArray();
+    return new Array();
 }

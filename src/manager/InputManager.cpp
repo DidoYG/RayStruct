@@ -178,7 +178,7 @@ bool InputManager::validateCustomStructureFile(const std::string& filePath, std:
     bool hasGetElements = lowercaseContent.find("getelements(") != std::string::npos;
 
     if (!hasInsert || !hasRemove || !hasGetElements) {
-        errorMessage = "missing required method overrides (insert, remove, getElements).";
+        errorMessage = "missing required method overrides (insert, remove, getElements, getName).";
         return false;
     }
 
@@ -388,7 +388,7 @@ bool InputManager::validateCustomAlgorithmFile(const std::string& filePath, std:
 
     // Ensure all required methods are present
     if (!hasExecute || !hasExecuteAndDisplay || !hasDisplay) {
-        errorMessage = "missing required method overrides (execute, executeAndDisplay, display).";
+        errorMessage = "missing required method overrides (execute, executeAndDisplay, display, getName).";
         return false;
     }
 

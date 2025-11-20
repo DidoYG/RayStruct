@@ -27,6 +27,10 @@ public:
         std::cout << std::endl;
     }
 
+    std::string getName() const override {
+        return "Radix Sort";
+    }
+
 private:
     void radixSort(std::vector<int>& arr) {
         if (arr.empty()) return;
