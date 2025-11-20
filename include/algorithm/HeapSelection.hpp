@@ -5,9 +5,9 @@
 class HeapSelection : public Algorithm {
 private:
     // Heap selection parameters
-    bool isSmallest;
-    int k;
-    int result;
+    bool isSmallest = true;
+    int k = 1;
+    int result = 0;
     
     // Helper functions
     void display(const std::vector<int>& elements) override;
@@ -23,4 +23,7 @@ public:
     // Setters for parameters
     void setIsSmallest(bool choice);
     void setK(int k);
+
+    // Helper for tests/UI to inspect the last computed result
+    int getResult() const;
 };

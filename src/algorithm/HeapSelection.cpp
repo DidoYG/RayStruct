@@ -48,9 +48,9 @@ void HeapSelection::execute(DataStructure* ds) {
     std::vector<int> elements = ds->getElements();
 
     if (isSmallest) {
-        findKthSmallest(elements, k);
+        result = findKthSmallest(elements, k);
     } else {
-        findKthLargest(elements, k);
+        result = findKthLargest(elements, k);
     }
 }
 
@@ -80,4 +80,9 @@ void HeapSelection::setIsSmallest(bool choice) {
 // Sets the k-th position to find
 void HeapSelection::setK(int k) {
     this->k = k;
+}
+
+// Retrieves the most recent selection result
+int HeapSelection::getResult() const {
+    return result;
 }
