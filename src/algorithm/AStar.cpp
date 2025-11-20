@@ -74,6 +74,11 @@ void AStar::display(const std::vector<int>& elements) {
     std::cout << std::endl;
 }
 
+// Get algorithm name
+std::string AStar::getName() const {
+    return "A*";
+}
+
 // Main A* algorithm logic
 void AStar::run(GraphStructure* graph) {
     // Preliminary checks

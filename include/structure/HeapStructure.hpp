@@ -12,4 +12,5 @@ public:
     void insert(int value) override;
     void remove(int value) override;
     std::vector<int> getElements() const override;
+    std::string getName() const override;
 };

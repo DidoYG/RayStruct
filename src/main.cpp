@@ -292,7 +292,12 @@ int main() {
 
             //clearConsole();
             // Run benchmark
-            benchmarkManager.runBenchmark(ds, algo);
+            if (ds && algo) {
+                std::cout << "\n\nBenchmark Successful" << std::endl;
+                std::cout << "Data Structure: " << ds->getName() << std::endl;
+                std::cout << "Algorithm: " << algo->getName() << std::endl;
+                benchmarkManager.runBenchmark(ds, algo);
+            }
 
             // Display operations/results if applicable
             if (algorithmSelection.selectedAlgorithm != AlgorithmEnum::HEAP_SELECTION && algorithmSelection.selectedAlgorithm != AlgorithmEnum::A_STAR && algorithmSelection.selectedAlgorithm != AlgorithmEnum::PRIMS) {

@@ -107,3 +107,8 @@ void MergeSort::executeAndDisplay(DataStructure* ds) {
     mergeSortVisual(elements, 0, static_cast<int>(elements.size()) - 1);
     display(elements);
 }
+
+// Get the name of the algorithm
+std::string MergeSort::getName() const {
+    return "Merge Sort";
+}

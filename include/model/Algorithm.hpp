@@ -13,5 +13,8 @@ public:
     virtual void execute(DataStructure* ds) = 0;
     virtual void executeAndDisplay(DataStructure* ds) = 0;
     virtual void display(const std::vector<int>& elements) = 0;
+
+    // For returning the name of the algorithm when benchmarking
+    virtual std::string getName() const = 0;
 };
 

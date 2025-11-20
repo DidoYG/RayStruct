@@ -90,6 +90,11 @@ void HeapBuild::executeAndDisplay(DataStructure* ds) {
     display(elements);
 }
 
+// Return the name of the algorithm
+std::string HeapBuild::getName() const {
+    return "Heap Build";
+}
+
 // Setter for heap type
 void HeapBuild::setHeapType(bool type) {
     isMinHeap = type;

@@ -18,6 +18,7 @@ public:
     // Overrides from Algorithm
     void execute(DataStructure* ds) override;
     void executeAndDisplay(DataStructure* ds) override;
+    std::string getName() const override;
 
     // Setters for parameters
     void setIsSmallest(bool choice);

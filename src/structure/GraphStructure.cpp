@@ -29,6 +29,11 @@ std::vector<int> GraphStructure::getElements() const {
     return vertices;
 }
 
+// Get the name of the data structure
+std::string GraphStructure::getName() const {
+    return "Graph";
+}
+
 // Implementation of graph-specific operations
 bool GraphStructure::hasVertex(int vertex) const {
     return adjacency.find(vertex) != adjacency.end();

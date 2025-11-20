@@ -27,4 +27,5 @@ public:
     void execute(DataStructure* ds) override;
     void executeAndDisplay(DataStructure* ds) override;
     void display(const std::vector<int>& elements) override;
+    std::string getName() const override;
 };

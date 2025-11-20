@@ -46,3 +46,8 @@ void InsertionSort::executeAndDisplay(DataStructure* ds) {
         display(elements); // Display after placing the key
     }
 }
+
+// Returns the name of the algorithm
+std::string InsertionSort::getName() const {
+    return "Insertion Sort";
+}

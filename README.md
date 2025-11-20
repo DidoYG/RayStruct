@@ -1,28 +1,55 @@
-# RayStruct++
+⚡️ RayStruct++
 
-**RayStruct++** is a C++ command-line application designed to **benchmark and compare classical algorithms and data structures**.  
-It enables users to execute predefined algorithms on predefined structures, measure their performance (execution time and memory usage), and even upload and test their **own custom implementations**.  
+RayStruct++ is a modern C++17 command-line benchmarking tool for evaluating and comparing the performance of classical algorithms and data structures.
+It allows users to run built-in benchmarks, measure execution time and memory usage, and even upload and execute custom algorithm implementations dynamically.
 
-This project serves as both an **educational platform** for understanding algorithmic performance and a **research tool** for testing and analyzing custom solutions.
+🧩 Overview
 
----
+RayStruct++ was built to serve as both an educational platform for students learning algorithms and a research tool for developers experimenting with new data structures or algorithmic optimizations.
 
-## 🚀 Features
+It provides an intuitive CLI interface, reliable benchmarking metrics, and support for custom user-defined modules, all built with clean software engineering principles such as Factory and Strategy design patterns.
 
-- **Benchmark classical data structures and algorithms**
-  - 📋 **List** – Insertion Sort, Merge Sort  
-  - 🔺 **Heap** – Build Heap (Min/Max), Heap-Based Selection (k-th smallest/largest element)  
-  - 🕸️ **Graph** – A* (A-Star) Pathfinding, Prim’s Minimum Spanning Tree (MST)
+🚀 Features
 
-- **Accurate performance measurements**
-  - Execution time tracking using `<chrono>`
-  - Memory usage estimation via system-level monitoring
+📊 Benchmark Classical Algorithms & Structures
+| Data Structure | Supported Algorithms                                               |
+| -------------- | ------------------------------------------------------------------ |
+| **List**       | Insertion Sort, Merge Sort                                         |
+| **Heap**       | Build Heap (Min/Max), Heap-Based Selection (k-th smallest/largest) |
+| **Graph**      | A* Pathfinding, Prim’s Minimum Spanning Tree (MST)                 |
 
-- **Custom algorithm integration**
-  - Users can provide file paths to their own `.cpp` or `.hpp` implementations  
-  - The system dynamically integrates and benchmarks the uploaded code
+⚙️ Accurate Performance Measurement
 
-- **CLI-based user interface**
-  - Intuitive text-based menus for selecting structures, algorithms, and input sizes  
-  - Clear console output with execution results and performance summaries  
----
+⏱ Execution Time – measured using the <chrono> high-resolution clock.
+
+🧠 Memory Usage – calculated via system-level monitoring (RSS on Linux, Working Set on Windows).
+
+📈 Optional step-by-step display for smaller datasets.
+
+🧩 Modular Architecture
+
+Factory Pattern – dynamically creates structures and algorithms.
+
+Strategy Pattern – interchangeable algorithm behavior at runtime.
+
+Interface Abstraction – algorithms and structures share common base interfaces.
+
+🧠 Custom Implementations
+
+Users can upload their own .cpp or .hpp files, which the system:
+
+Validates and compiles dynamically.
+
+Loads as shared libraries
+
+Benchmarks against the predefined evaluation metrics.
+
+For more information on how to make a valid .cpp implementation look at the /custom folder for examples of DataStructure and Algorithm files.
+
+💻 Cross-Platform CLI
+
+Lightweight, text-based interface.
+
+Clear interactive prompts for structure, algorithm, and input selection.
+
+Designed for Linux and Windows (tested with g++).

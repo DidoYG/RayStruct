@@ -6,6 +6,7 @@ void HeapStructure::insert(int value) {
     data.push_back(value);
 }
 
+// Removes the first occurrence of the value from the heap
 void HeapStructure::remove(int value) {
     for (size_t i = 0; i < data.size(); ++i) {
         if (data[i] == value) {
@@ -15,6 +16,12 @@ void HeapStructure::remove(int value) {
     }
 }
 
+// Retrieves all elements in the heap
 std::vector<int> HeapStructure::getElements() const {
     return data;
+}
+
+// Get the name of the data structure
+std::string HeapStructure::getName() const {
+    return "Heap";
 }

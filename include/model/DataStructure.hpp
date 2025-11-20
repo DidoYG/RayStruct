@@ -1,6 +1,7 @@
 // include/model/DataStructure.hpp
 #pragma once
 #include <vector>
+#include <string>
 
 class DataStructure {
 public:
@@ -12,4 +13,7 @@ public:
 
     // Retrieval operation used when displaying contents
     virtual std::vector<int> getElements() const = 0;
+
+    // For returning the name of the data structure when benchmarking
+    virtual std::string getName() const = 0;
 };

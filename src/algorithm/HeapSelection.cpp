@@ -67,6 +67,11 @@ void HeapSelection::executeAndDisplay(DataStructure* ds) {
     display(elements);
 }
 
+// Returns the name of the algorithm
+std::string HeapSelection::getName() const {
+    return "Heap Selection";
+}
+
 // Sets whether to find the k-th smallest or largest element
 void HeapSelection::setIsSmallest(bool choice) {
     isSmallest = choice;

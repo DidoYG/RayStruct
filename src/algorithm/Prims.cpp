@@ -80,6 +80,11 @@ void Prims::display(const std::vector<int>& elements) {
     std::cout << std::endl;
 }
 
+// Return the name of the algorithm
+std::string Prims::getName() const {
+    return "Prim's MST";
+}
+
 // Main Prim's algorithm logic
 void Prims::run(GraphStructure* graph) {
     // Clear previous results

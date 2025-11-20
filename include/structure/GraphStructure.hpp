@@ -15,7 +15,8 @@ public:
 
     void insert(int value) override;  // adds a vertex if it does not exist
     void remove(int value) override;  // removes a vertex and its incident edges
-    std::vector<int> getElements() const override;  // returns vertex ids
+    std::vector<int> getElements() const override;  // returns a list of vertices
+    std::string getName() const override; // returns the name of the data structure
 
     // Graph-specific operations
     bool hasVertex(int vertex) const;
