@@ -11,6 +11,7 @@ private:
     std::string trim(const std::string& str);
     DataStructureEnum parseStructure(const std::string& input);
     AlgorithmEnum parseAlgorithm(const std::string& input);
+    bool isAlgorithmCompatible(AlgorithmEnum algorithm, DataStructureEnum structureType);
     bool promptCustomStructurePath(std::string& outPath, std::string& compilerOutput, std::string& libraryPath);
     bool validateCustomStructureFile(const std::string& filePath, std::string& errorMessage);
     bool compileCustomStructure(const std::string& filePath, std::string& compilerOutput, std::string& libraryPath);

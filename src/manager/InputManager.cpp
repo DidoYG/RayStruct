@@ -533,11 +533,14 @@ InputManager::AlgorithmSelection InputManager::selectAlgorithm(DataStructureEnum
                 std::cout << ">>> ";
                 break;
             case DataStructureEnum::CUSTOM:
+                // For a custom structure we directly go to custom algorithm handling
                 shouldSkipSelection = true;
                 algorithm = AlgorithmEnum::CUSTOM;
                 break;
             default:
-                break;
+                // Unknown or unsupported structure type
+                selection.shouldExit = true;
+                return selection;
         }
 
         // Skip algorithm selection if the selected structure is Custom
@@ -549,17 +552,27 @@ InputManager::AlgorithmSelection InputManager::selectAlgorithm(DataStructureEnum
                 break;
             }
 
-            // Parse algorithm and validate
+            // Parse algorithm
             algorithm = parseAlgorithm(input);
-            if (algorithm == AlgorithmEnum::UNKNOWN) {
-                std::cout << "\nInvalid algorithm. Try again." << std::endl;
+
+            // Validate algorithm against structure
+            if (algorithm == AlgorithmEnum::UNKNOWN ||
+                !isAlgorithmCompatible(algorithm, structureType)) {
+
+                std::cout << "\nInvalid algorithm for the selected data structure. Try again." << std::endl;
+                algorithm = AlgorithmEnum::UNKNOWN; // Force loop to continue
+                continue;
             }
         }
+
         // Handle custom algorithm selection
         if (algorithm == AlgorithmEnum::CUSTOM) {
             std::cout << "\nSelected custom algorithm." << std::endl;
             std::cout << "Ensure your implementation derives from the 'Algorithm' base class provided by RayStruct++." << std::endl;
-            if (!promptCustomAlgorithmPath(selection.customAlgorithmPath, selection.customAlgorithmCompileOutput, selection.customAlgorithmLibraryPath)) {
+
+            if (!promptCustomAlgorithmPath(selection.customAlgorithmPath,
+                                           selection.customAlgorithmCompileOutput,
+                                           selection.customAlgorithmLibraryPath)) {
                 selection.shouldExit = true;
                 algorithm = AlgorithmEnum::UNKNOWN;
             }
@@ -568,6 +581,34 @@ InputManager::AlgorithmSelection InputManager::selectAlgorithm(DataStructureEnum
 
     selection.selectedAlgorithm = algorithm;
     return selection;
+}
+
+// Public method to check if selected algorithm is compatible with chosen data structure
+bool InputManager::isAlgorithmCompatible(AlgorithmEnum algorithm, DataStructureEnum structureType) {
+    switch (structureType) {
+        case DataStructureEnum::LIST:
+            return algorithm == AlgorithmEnum::INSERTION_SORT ||
+                   algorithm == AlgorithmEnum::MERGE_SORT    ||
+                   algorithm == AlgorithmEnum::CUSTOM;
+
+        case DataStructureEnum::HEAP:
+            return algorithm == AlgorithmEnum::HEAP_BUILD     ||
+                   algorithm == AlgorithmEnum::HEAP_SELECTION ||
+                   algorithm == AlgorithmEnum::CUSTOM;
+
+        case DataStructureEnum::GRAPH:
+            return algorithm == AlgorithmEnum::A_STAR ||
+                   algorithm == AlgorithmEnum::PRIMS ||
+                   algorithm == AlgorithmEnum::CUSTOM;
+
+        case DataStructureEnum::CUSTOM:
+            // For a fully custom structure, only allow custom algorithms
+            return algorithm == AlgorithmEnum::CUSTOM;
+
+        case DataStructureEnum::UNKNOWN:
+        default:
+            return false;
+    }
 }
 
 // Public method: create data structure instance using factory
