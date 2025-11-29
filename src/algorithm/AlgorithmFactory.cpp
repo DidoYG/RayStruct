@@ -43,7 +43,7 @@ bool shouldOwnLibraryFile(const std::string& pathStr) {
 }
 } // namespace
 
-// Factory method to create algorithm instances based on the provided enum type
+// Instantiates built-in algorithms or dlopens a custom shared object on demand.
 Algorithm* AlgorithmFactory::createAlgorithm(AlgorithmEnum type, const std::string& customLibraryPath) {
     switch (type) {
         case AlgorithmEnum::INSERTION_SORT: 
@@ -112,7 +112,7 @@ Algorithm* AlgorithmFactory::createAlgorithm(AlgorithmEnum type, const std::stri
     }
 }
 
-// Cleanup method to unload custom libraries and delete owned files
+// Clears every custom library handle and optionally deletes temporary .so files.
 void AlgorithmFactory::cleanupCustomLibraries() {
     // Unload all custom libraries and delete files if owned
     auto& libraries = customLibraries();

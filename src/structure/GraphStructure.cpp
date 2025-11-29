@@ -3,11 +3,12 @@
 #include <algorithm>
 #include <limits>
 
-// Implementation of inherited GraphStructure methods
+// Inserts the vertex into adjacency map if missing so edges can be attached.
 void GraphStructure::insert(int value) {
     adjacency.try_emplace(value);
 }
 
+// Removes the vertex and strips any existing incoming edges plus heuristic data.
 void GraphStructure::remove(int value) {
     adjacency.erase(value);
     for (auto& [vertex, neighbors] : adjacency) {
@@ -20,6 +21,7 @@ void GraphStructure::remove(int value) {
     heuristics.erase(value);
 }
 
+// Returns a simple list of vertex ids so algorithms can inspect the graph.
 std::vector<int> GraphStructure::getElements() const {
     std::vector<int> vertices;
     vertices.reserve(adjacency.size());
@@ -29,22 +31,22 @@ std::vector<int> GraphStructure::getElements() const {
     return vertices;
 }
 
-// Get the name of the data structure
+// Provides the display name for benchmarking.
 std::string GraphStructure::getName() const {
     return "Graph";
 }
 
-// Implementation of graph-specific operations
+// Verifies that a vertex is already tracked in the adjacency list.
 bool GraphStructure::hasVertex(int vertex) const {
     return adjacency.find(vertex) != adjacency.end();
 }
 
-// Adds an edge from 'from' to 'to' with the specified weight
+// Adds or updates an edge between vertices, handling bidirectional edges when requested.
 bool GraphStructure::addEdge(int from, int to, double weight, bool bidirectional) {
     insert(from);
     insert(to);
 
-    // Lambda to add or update a neighbor
+    // Lambda function that adds or updates a neighbor
     auto addNeighbor = [weight](std::vector<Neighbor>& neighbors, int target) {
         auto existing = std::find_if(neighbors.begin(), neighbors.end(),
                                      [target](const Neighbor& edge) { return edge.first == target; });
@@ -65,7 +67,7 @@ bool GraphStructure::addEdge(int from, int to, double weight, bool bidirectional
     return true;
 }
 
-// Removes the edge from 'from' to 'to'
+// Removes the edge(s) between two vertices, supporting symmetric removal.
 bool GraphStructure::removeEdge(int from, int to, bool bidirectional) {
     bool removed = false;
 
@@ -93,29 +95,29 @@ bool GraphStructure::removeEdge(int from, int to, bool bidirectional) {
     return removed;
 }
 
-// Returns the adjacency list of the graph
+// Returns the adjacency list for algorithms that need raw neighbor data.
 const GraphStructure::AdjacencyList& GraphStructure::getAdjacency() const {
     return adjacency;
 }
 
-// Clears the entire graph
+// Clears all vertices, edges, and heuristic values.
 void GraphStructure::clear() {
     adjacency.clear();
     heuristics.clear();
 }
 
-// Heuristic management implementations
+// Assigns or overwrites the heuristic value for a vertex.
 void GraphStructure::setHeuristic(int vertex, double value) {
     insert(vertex);
     heuristics[vertex] = value;
 }
 
-// Checks if a heuristic exists for the given vertex
+// Determines whether a heuristic entry is available for the vertex.
 bool GraphStructure::hasHeuristic(int vertex) const {
     return heuristics.find(vertex) != heuristics.end();
 }
 
-// Retrieves the heuristic value for the given vertex
+// Looks up the heuristic, returning zero when the vertex lacks an explicit value.
 double GraphStructure::getHeuristic(int vertex) const {
     auto it = heuristics.find(vertex);
     if (it != heuristics.end()) {
@@ -124,7 +126,7 @@ double GraphStructure::getHeuristic(int vertex) const {
     return 0.0;
 }
 
-// Returns all heuristics in the graph
+// Gives callers read-only access to every stored heuristic entry.
 const std::unordered_map<int, double>& GraphStructure::getHeuristics() const {
     return heuristics;
 }

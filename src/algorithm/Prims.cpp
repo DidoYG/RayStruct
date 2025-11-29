@@ -12,7 +12,7 @@ namespace {
 // Priority queue entry: (edge weight, from vertex, to vertex)
 using QueueEntry = std::tuple<double, int, int>; // weight, from, to
 
-// Comparator for the priority queue (min-heap based on edge weight)
+// Comparison for the priority queue (min-heap based on edge weight)
 struct QueueCompare {
     bool operator()(const QueueEntry& lhs, const QueueEntry& rhs) const {
         return std::get<0>(lhs) > std::get<0>(rhs);
@@ -20,24 +20,27 @@ struct QueueCompare {
 };
 } // namespace
 
-// Prim's helper methods
+// Sets the user-selected starting vertex.
 void Prims::setStart(int start) {
     startVertex = start;
 }
 
+// Provides read-only access to the edges collected for the MST.
 const std::vector<std::tuple<int, int, double>>& Prims::getMST() const {
     return mstEdges;
 }
 
+// Returns the total weight of the MST or of the partial tree if disconnected.
 double Prims::getTotalWeight() const {
     return totalWeight;
 }
 
+// Signals when the graph had unreachable vertices and the MST is incomplete.
 bool Prims::isDisconnected() const {
     return isDisconnectedFlag;
 }
 
-// Execute Prim's algorithm
+// The override of the execute method called by the benchmarking logic.
 void Prims::execute(DataStructure* ds) {
     auto* graph = dynamic_cast<GraphStructure*>(ds);
     mstEdges.clear();
@@ -51,7 +54,7 @@ void Prims::execute(DataStructure* ds) {
     run(graph);
 }
 
-// Execute and display results
+// Runs the algorithm and prints a user-friendly summary of the resulting MST.
 void Prims::executeAndDisplay(DataStructure* ds) {
     execute(ds);
     if (mstEdges.empty()) {
@@ -69,7 +72,7 @@ void Prims::executeAndDisplay(DataStructure* ds) {
     }
 }
 
-// Display elements (vertex ids)
+// Displaying of the vertex lists.
 void Prims::display(const std::vector<int>& elements) {
     for (std::size_t i = 0; i < elements.size(); ++i) {
         std::cout << elements[i];
@@ -80,12 +83,12 @@ void Prims::display(const std::vector<int>& elements) {
     std::cout << std::endl;
 }
 
-// Return the name of the algorithm
+// Return's the algorithm's name.
 std::string Prims::getName() const {
     return "Prim's MST";
 }
 
-// Main Prim's algorithm logic
+// Implements the actual Prim's algorithm with support for disconnected components.
 void Prims::run(GraphStructure* graph) {
     // Clear previous results
     const auto& adjacency = graph->getAdjacency();
@@ -97,7 +100,7 @@ void Prims::run(GraphStructure* graph) {
     std::priority_queue<QueueEntry, std::vector<QueueEntry>, QueueCompare> pq;
     std::unordered_set<int> visited;
 
-    // Lambda to seed the starting vertex
+    // Lambda function to set the starting vertex
     auto seedStart = [this, graph, &adjacency, &visited, &pq]() {
         int start = startVertex;
         if (!graph->hasVertex(start)) {

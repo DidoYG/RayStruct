@@ -3,7 +3,7 @@
 #include <iostream>
 #include <vector>
 
-// Displays the elements of the vector
+// Prints the array so users can observe the intermediate ordering.
 void InsertionSort::display(const std::vector<int>& elements) {
     for (const int& val : elements) {
         std::cout << val << " ";
@@ -11,7 +11,7 @@ void InsertionSort::display(const std::vector<int>& elements) {
     std::cout << std::endl;
 }
 
-// Executes the insertion sort algorithm on the data structure
+// Runs the insertion sort without printing results.
 void InsertionSort::execute(DataStructure* ds) {
     std::vector<int> elements = ds->getElements();
     // Insertion Sort Algorithm
@@ -26,7 +26,7 @@ void InsertionSort::execute(DataStructure* ds) {
     }
 }
 
-// Executes the insertion sort algorithm and displays each step
+// Performs the same algorithm but shows the array after each operation.
 void InsertionSort::executeAndDisplay(DataStructure* ds) {
     std::vector<int> elements = ds->getElements();
     
@@ -47,7 +47,7 @@ void InsertionSort::executeAndDisplay(DataStructure* ds) {
     }
 }
 
-// Returns the name of the algorithm
+// Returns the algorithm's name.
 std::string InsertionSort::getName() const {
     return "Insertion Sort";
 }

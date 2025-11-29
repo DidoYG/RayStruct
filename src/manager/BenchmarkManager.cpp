@@ -8,7 +8,7 @@
 #include <psapi.h>
 #endif
 
-// Method for getting current RSS memory usage
+// Captures platform-specific RSS/shared/private memory stats after a run.
 void BenchmarkManager::getCurrentRSSBytes() {
 // UNIX systems
 #if defined(__linux__)
@@ -53,6 +53,7 @@ void BenchmarkManager::getCurrentRSSBytes() {
 #endif
 }
 
+// Prints the memory snapshot captured before the benchmark started.
 void BenchmarkManager::getLastRssBytes() {
     std::cout << "\nMemory usage at start:\n";
     std::cout << "[Linux] RSS - " << lastRSSKb << " kB\n";
@@ -60,7 +61,7 @@ void BenchmarkManager::getLastRssBytes() {
     std::cout << "[Linux] Private Memory - " << lastPrivateKb << " kB\n";
 }
 
-// Run benchmark on given data structure and algorithm
+// Times the algorithm execution and reports both duration and RSS memory use.
 void BenchmarkManager::runBenchmark(DataStructure* ds, Algorithm* algo) {
     std::cout << "\nBenchmark Metrics =>" << std::endl;
 

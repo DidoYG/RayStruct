@@ -15,13 +15,15 @@ private:
     double lastRSSKb = 0, lastSharedKb = 0, lastPrivateKb = 0;
 
     // Helper functions for resource tracking
+    // Captures the ending RSS/shared/private stats.
     void getCurrentRSSBytes();
+    // Prints the previously sampled RSS/shared/private stats.
     void getLastRssBytes();
     
 public:
     // Constructor
     BenchmarkManager() = default;
 
-    // Run benchmark on given data structure and algorithm
+    // Executes the algorithm while recording timing and memory metrics.
     void runBenchmark(DataStructure* ds, Algorithm* algo);
 };

@@ -19,6 +19,7 @@ public:
 // Lightweight assertion helper used inside each test case
 class TestContext {
 public:
+    // Basic boolean assertion helper.
     void expect(bool condition, const std::string& message) {
         if (!condition) {
             throw TestFailure(message);
@@ -26,6 +27,7 @@ public:
     }
 
     template <typename T, typename U>
+    // Checks two values for equality and emits a detailed failure message.
     void expectEqual(const T& actual, const U& expected, const std::string& label) {
         if (!(actual == expected)) {
             std::ostringstream oss;
@@ -35,6 +37,7 @@ public:
     }
 
     template <typename T>
+    // Compares two sequences element-by-element.
     void expectSequenceEqual(const std::vector<T>& actual,
                              const std::vector<T>& expected,
                              const std::string& label) {
@@ -54,6 +57,7 @@ public:
         }
     }
 
+    // Validates that two floating-point values are within tolerance.
     void expectNear(double actual, double expected, double tolerance, const std::string& label) {
         if (std::fabs(actual - expected) > tolerance) {
             std::ostringstream oss;
@@ -63,6 +67,7 @@ public:
         }
     }
 
+    // Forces an immediate failure with the provided message.
     [[noreturn]] void fail(const std::string& message) {
         throw TestFailure(message);
     }
@@ -73,10 +78,12 @@ class TestSuite {
 public:
     using TestFunc = std::function<void(TestContext&)>;
 
+    // Registers a new named test case.
     void add(std::string name, TestFunc func) {
         tests.emplace_back(std::move(name), std::move(func));
     }
 
+    // Executes each test and summarizes the result.
     int run() const {
         int passed = 0;
         std::cout << "Running " << tests.size() << " tests...\n";

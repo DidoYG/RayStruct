@@ -3,7 +3,7 @@
 #include <iostream>
 #include <vector>
 
-// Standard merge sort implementation
+// Performs the recursive divide-and-conquer merge sort.
 void MergeSort::mergeSort(std::vector<int>& elements, int left, int right) {
     if (left >= right) {
         return;
@@ -16,7 +16,7 @@ void MergeSort::mergeSort(std::vector<int>& elements, int left, int right) {
     merge(elements, left, mid, right);
 }
 
-// Merge sort with visual output
+// Identical to mergeSort but prints array states during merging for teaching.
 void MergeSort::mergeSortVisual(std::vector<int>& elements, int left, int right) {
     if (left >= right) {
         return;
@@ -29,7 +29,7 @@ void MergeSort::mergeSortVisual(std::vector<int>& elements, int left, int right)
     mergeVisual(elements, left, mid, right);
 }
 
-// Standard merge step
+// Merges the sorted halves back into the main array without extra output.
 void MergeSort::merge(std::vector<int>& elements, int left, int mid, int right) {
     // Create temporary vectors for left and right subarrays
     std::vector<int> leftVec(elements.begin() + left, elements.begin() + mid + 1);
@@ -57,7 +57,7 @@ void MergeSort::merge(std::vector<int>& elements, int left, int mid, int right) 
     }
 }
 
-// Same as merge but with display calls
+// Merge step variant that calls display after every copy so users see progress.
 void MergeSort::mergeVisual(std::vector<int>& elements, int left, int mid, int right) {
     std::vector<int> leftVec(elements.begin() + left, elements.begin() + mid + 1);
     std::vector<int> rightVec(elements.begin() + mid + 1, elements.begin() + right + 1);
@@ -85,7 +85,7 @@ void MergeSort::mergeVisual(std::vector<int>& elements, int left, int mid, int r
     }
 }
 
-// Display function to print elements
+// Prints the array in order, useful for before/after comparisons.
 void MergeSort::display(const std::vector<int>& elements) {
     for (const int& val : elements) {
         std::cout << val << " ";
@@ -93,13 +93,13 @@ void MergeSort::display(const std::vector<int>& elements) {
     std::cout << std::endl;
 }
 
-// Execute standard merge sort
+// Entry point for benchmarking that runs the non-visual merge sort.
 void MergeSort::execute(DataStructure* ds) {
     std::vector<int> elements = ds->getElements();
     mergeSort(elements, 0, elements.size()- 1);
 }
 
-// Execute merge sort with visual output
+// Executes the visual variant to show intermediate merging steps.
 void MergeSort::executeAndDisplay(DataStructure* ds) {
     std::vector<int> elements = ds->getElements();
 
@@ -108,7 +108,7 @@ void MergeSort::executeAndDisplay(DataStructure* ds) {
     display(elements);
 }
 
-// Get the name of the algorithm
+// Returns the algorithm's name.
 std::string MergeSort::getName() const {
     return "Merge Sort";
 }

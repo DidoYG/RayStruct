@@ -14,7 +14,7 @@
 // Namespace alias for filesystem
 namespace fs = std::filesystem;
 
-// Helper: trim whitespace from both ends of a string
+// Removes surrounding whitespace from a user entry before parsing menus.
 std::string InputManager::trim(const std::string& str) {
     auto start = str.find_first_not_of(" \t\n\r\f\v");
     if (start == std::string::npos)
@@ -23,7 +23,7 @@ std::string InputManager::trim(const std::string& str) {
     return str.substr(start, end - start + 1);
 }
 
-// Helper: convert string to DataStructureEnum
+// Normalizes the free-form text into a specific data structure choice.
 DataStructureEnum InputManager::parseStructure(const std::string& input) {
     std::string s = trim(input);
     std::transform(s.begin(), s.end(), s.begin(), ::tolower);
@@ -36,7 +36,7 @@ DataStructureEnum InputManager::parseStructure(const std::string& input) {
     return DataStructureEnum::UNKNOWN;
 }
 
-// Helper: convert string to AlgorithmEnum
+// Maps menu text to the internal algorithm enum, handling friendly aliases.
 AlgorithmEnum InputManager::parseAlgorithm(const std::string& input) {
     std::string s = trim(input);
     std::transform(s.begin(), s.end(), s.begin(), ::tolower);
@@ -52,7 +52,7 @@ AlgorithmEnum InputManager::parseAlgorithm(const std::string& input) {
     return AlgorithmEnum::UNKNOWN;
 }
 
-// Helper: prompt user for custom data structure file path and handle compilation
+// Drives the wizard for loading, validating, and compiling a custom structure file.
 bool InputManager::promptCustomStructurePath(std::string& outPath, std::string& compilerOutput, std::string& libraryPath) {
     while (true) {
         std::cout << "\nEnter the path to your custom data structure .cpp file ('exit' to quit)" << std::endl;
@@ -138,7 +138,7 @@ bool InputManager::promptCustomStructurePath(std::string& outPath, std::string& 
     }
 }
 
-// Helper: validate the contents of the custom data structure file
+// Examines the custom structure file to ensure it implements the required interface pieces.
 bool InputManager::validateCustomStructureFile(const std::string& filePath, std::string& errorMessage) {
     std::ifstream file(filePath);
     if (!file.is_open()) {
@@ -191,7 +191,7 @@ bool InputManager::validateCustomStructureFile(const std::string& filePath, std:
     return true;
 }
 
-// Helper: compile the custom data structure .cpp file into a shared library
+// Invokes g++ to turn the validated custom structure source into a shared object we can dlopen.
 bool InputManager::compileCustomStructure(const std::string& filePath, std::string& compilerOutput, std::string& libraryPath) {
     fs::path sourcePath(__FILE__);
     fs::path projectRoot = sourcePath.parent_path().parent_path().parent_path();
@@ -251,7 +251,7 @@ bool InputManager::compileCustomStructure(const std::string& filePath, std::stri
     return true;
 }
 
-// Helper: prompt user for custom algorithm file path and handle compilation
+// Guides the user through selecting, validating, and building a custom algorithm implementation.
 bool InputManager::promptCustomAlgorithmPath(std::string& outPath, std::string& compilerOutput, std::string& libraryPath) {
     while (true) {
         std::cout << "\nEnter the path to your custom algorithm .cpp file ('exit' to quit)" << std::endl;
@@ -343,7 +343,7 @@ bool InputManager::promptCustomAlgorithmPath(std::string& outPath, std::string& 
     }
 }
 
-// Helper: validate the contents of the custom algorithm file
+// Ensures the custom algorithm source derives from Algorithm and implements the expected overrides.
 bool InputManager::validateCustomAlgorithmFile(const std::string& filePath, std::string& errorMessage) {
     // Basic validation: check for required includes and method signatures
     std::ifstream file(filePath);
@@ -401,7 +401,7 @@ bool InputManager::validateCustomAlgorithmFile(const std::string& filePath, std:
     return true;
 }
 
-// Helper: compile the custom algorithm .cpp file into a shared library
+// Compiles the custom algorithm source into a plugin so the benchmark harness can load it.
 bool InputManager::compileCustomAlgorithm(const std::string& filePath, std::string& compilerOutput, std::string& libraryPath) {
     // Determine project root and include paths
     fs::path sourcePath(__FILE__);
@@ -471,7 +471,7 @@ bool InputManager::compileCustomAlgorithm(const std::string& filePath, std::stri
     return true;
 }
 
-// Public method: prompt user to select data structure
+// Repeatedly prompts until the user selects a valid data structure or chooses to exit.
 InputManager::StructureSelection InputManager::selectStructure() {
     StructureSelection selection;
     DataStructureEnum structure = DataStructureEnum::UNKNOWN;
@@ -506,7 +506,7 @@ InputManager::StructureSelection InputManager::selectStructure() {
     return selection;
 }
 
-// Public method: prompt user to select algorithm based on chosen data structure
+// Presents the compatible algorithm menu for the chosen structure and handles custom builds.
 InputManager::AlgorithmSelection InputManager::selectAlgorithm(DataStructureEnum structureType) {
     AlgorithmSelection selection;
     AlgorithmEnum algorithm = AlgorithmEnum::UNKNOWN;
@@ -583,7 +583,7 @@ InputManager::AlgorithmSelection InputManager::selectAlgorithm(DataStructureEnum
     return selection;
 }
 
-// Public method to check if selected algorithm is compatible with chosen data structure
+// Guards against pairing algorithms with unsupported data structures.
 bool InputManager::isAlgorithmCompatible(AlgorithmEnum algorithm, DataStructureEnum structureType) {
     switch (structureType) {
         case DataStructureEnum::LIST:
@@ -611,17 +611,17 @@ bool InputManager::isAlgorithmCompatible(AlgorithmEnum algorithm, DataStructureE
     }
 }
 
-// Public method: create data structure instance using factory
+// Delegates to the factory to instantiate either built-in or custom structures.
 DataStructure* InputManager::createDataStructure(const StructureSelection& selection) const {
     return DataStructureFactory::createDataStructure(selection.selectedStructure, selection.customStructureLibraryPath);
 }
 
-// Public method: create algorithm instance using factory
+// Creates the requested algorithm, including dlopen-ed custom implementations.
 Algorithm* InputManager::createAlgorithm(const AlgorithmSelection& selection) const {
     return AlgorithmFactory::createAlgorithm(selection.selectedAlgorithm, selection.customAlgorithmLibraryPath);
 }
 
-// Public method: populate data structure with user-provided data
+// Handles the interactive element entry flow for each structure type.
 bool InputManager::populateDS(DataStructure* ds, DataStructureEnum structureType) {
     bool shouldExit = false;
     std::string input;

@@ -33,10 +33,12 @@ public:
     explicit VectorDataStructure(std::vector<int> values = {})
         : data(std::move(values)) {}
 
+    // Appends each inserted value to maintain deterministic ordering.
     void insert(int value) override {
         data.push_back(value);
     }
 
+    // Removes the first matching value to mirror list semantics.
     void remove(int value) override {
         for (auto it = data.begin(); it != data.end(); ++it) {
             if (*it == value) {
@@ -46,10 +48,12 @@ public:
         }
     }
 
+    // Returns the stored elements for algorithms under test.
     std::vector<int> getElements() const override {
         return data;
     }
 
+    // Identifies this helper structure during debugging.
     std::string getName() const override {
         return "VectorDataStructure";
     }
@@ -61,9 +65,11 @@ private:
 // Utility for redirecting std::cout to an ostringstream while running an algorithm
 class ScopedStreamRedirect {
 public:
+    // Temporarily reroutes output into the provided replacement stream.
     ScopedStreamRedirect(std::ostream& stream, std::ostream& replacement)
         : stream(stream), oldBuf(stream.rdbuf(replacement.rdbuf())) {}
 
+    // Restores the original rdbuf when the guard falls out of scope.
     ~ScopedStreamRedirect() {
         stream.rdbuf(oldBuf);
     }
@@ -76,6 +82,7 @@ private:
 // Adapter exposing HeapBuild::buildHeap so we can validate heap layouts
 class HeapBuildTestAdapter : public HeapBuild {
 public:
+    // Allows tests to invoke the protected buildHeap helper.
     std::vector<int> build(std::vector<int> values, bool isMinHeap) {
         buildHeap(values, isMinHeap);
         return values;
@@ -85,20 +92,25 @@ public:
 // Dummy algorithm for exercising BenchmarkManager behavior
 class DummyAlgorithm : public Algorithm {
 public:
+    // Records that execute() was triggered.
     void execute(DataStructure*) override {
         ++executeCount;
     }
 
+    // Delegates to execute() because tests only track invocation count.
     void executeAndDisplay(DataStructure* ds) override {
         execute(ds);
     }
 
+    // No-op display to satisfy the interface.
     void display(const std::vector<int>&) override {}
 
+    // Identifies the dummy algorithm in assertions/logs.
     std::string getName() const override {
         return "Dummy";
     }
 
+    // Exposes how many times execute() has been called.
     int getExecuteCount() const {
         return executeCount;
     }
@@ -108,6 +120,7 @@ private:
 };
 
 // Helpers
+// Extracts the last line containing integers and returns those values as a vector.
 std::vector<int> extractLastNumberLine(const std::string& text) {
     std::istringstream input(text);
     std::string line;
@@ -139,6 +152,7 @@ std::vector<int> extractLastNumberLine(const std::string& text) {
     return values;
 }
 
+// Scans the text for the last integer literal and returns it.
 int extractLastInteger(const std::string& text) {
     bool building = false;
     int sign = 1;
@@ -179,6 +193,7 @@ int extractLastInteger(const std::string& text) {
     return lastValue;
 }
 
+// Checks whether every parent is <= its children.
 bool isValidMinHeap(const std::vector<int>& values) {
     for (std::size_t i = 0; i < values.size(); ++i) {
         std::size_t left = 2 * i + 1;
@@ -193,6 +208,7 @@ bool isValidMinHeap(const std::vector<int>& values) {
     return true;
 }
 
+// Checks whether every parent is >= its children.
 bool isValidMaxHeap(const std::vector<int>& values) {
     for (std::size_t i = 0; i < values.size(); ++i) {
         std::size_t left = 2 * i + 1;
@@ -207,6 +223,7 @@ bool isValidMaxHeap(const std::vector<int>& values) {
     return true;
 }
 
+// Helper that returns the stored weight for a given edge (or NaN if missing).
 double getEdgeWeight(const GraphStructure::AdjacencyList& adjacency, int from, int to) {
     auto it = adjacency.find(from);
     if (it == adjacency.end()) {
@@ -220,6 +237,7 @@ double getEdgeWeight(const GraphStructure::AdjacencyList& adjacency, int from, i
     return std::numeric_limits<double>::quiet_NaN();
 }
 
+// Entry point that registers and executes all test cases.
 int main() {
     TestSuite suite;
 

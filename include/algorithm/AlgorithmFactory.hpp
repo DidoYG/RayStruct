@@ -12,8 +12,8 @@
 
 class AlgorithmFactory {
 public:
-    // Factory method to create algorithm instances based on the provided enum type
-    // For CUSTOM type, a customLibraryPath must be provided.
+    // Instantiates built-in algorithms or loads a custom shared library when requested.
     static Algorithm* createAlgorithm(AlgorithmEnum type, const std::string& customLibraryPath = "");
+    // Clears all previously loaded custom algorithm libraries.
     static void cleanupCustomLibraries();
 };

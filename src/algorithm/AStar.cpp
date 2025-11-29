@@ -21,24 +21,28 @@ struct NodeEntry {
 };
 } // namespace
 
-// Public helper methods
+// Stores the vertex where the A* search starts so user input can be reused.
 void AStar::setStart(int start) {
     startVertex = start;
 }
 
+// Captures the goal vertex the algorithm should attempt to reach.
 void AStar::setGoal(int goal) {
     goalVertex = goal;
 }
 
+// Exposes the latest computed path for callers that need the raw sequence.
 const std::vector<int>& AStar::getPath() const {
     return path;
 }
 
+// Reports the cumulative cost of the last successful path search.
 double AStar::getPathCost() const {
     return totalCost;
 }
 
 // Overrides from Algorithm
+// Runs the A* algorithm using the provided data structure if it is a graph.
 void AStar::execute(DataStructure* ds) {
     auto* graph = dynamic_cast<GraphStructure*>(ds);
     path.clear();
@@ -51,6 +55,7 @@ void AStar::execute(DataStructure* ds) {
     run(graph);
 }
 
+// Executes the algorithm then prints either the discovered path or a warning.
 void AStar::executeAndDisplay(DataStructure* ds) {
     execute(ds);
     if (path.empty()) {
@@ -64,6 +69,7 @@ void AStar::executeAndDisplay(DataStructure* ds) {
 }
 
 // Display method
+// Outputs the path as a readable "a -> b" format for benchmarking.
 void AStar::display(const std::vector<int>& elements) {
     for (std::size_t i = 0; i < elements.size(); ++i) {
         std::cout << elements[i];
@@ -75,11 +81,13 @@ void AStar::display(const std::vector<int>& elements) {
 }
 
 // Get algorithm name
+// Identifies the algorithm so menus and benchmark logs can label results.
 std::string AStar::getName() const {
     return "A*";
 }
 
 // Main A* algorithm logic
+// Core search loop that tracks open/closed sets and computes optimal paths.
 void AStar::run(GraphStructure* graph) {
     // Preliminary checks
     if (startVertex == -1 || goalVertex == -1) {
@@ -159,6 +167,7 @@ void AStar::run(GraphStructure* graph) {
 }
 
 // Reconstruct path from cameFrom map
+// Walks backward through the parent map to build the final start-to-goal route.
 void AStar::reconstructPath(int goal, const std::unordered_map<int, int>& cameFrom) {
     path.clear();
     path.push_back(goal);

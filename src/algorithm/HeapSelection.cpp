@@ -4,7 +4,7 @@
 #include <queue>
 #include <functional>
 
-// Displays the result
+// Returns the computed k-th statistic and whether it was min or max based.
 void HeapSelection::display(const std::vector<int>& elements) {
     if (isSmallest) {
         std::cout << "The " << k << "-th smallest element is: " << result << std::endl;
@@ -13,7 +13,7 @@ void HeapSelection::display(const std::vector<int>& elements) {
     }
 }
 
-// Finds the k-th smallest element using a max heap
+// Uses a max-heap to keep the k smallest values seen so far.
 int HeapSelection::findKthSmallest(std::vector<int>& elements, int k) {
     // max heap to store k smallest
     std::priority_queue<int> maxHeap;
@@ -28,7 +28,7 @@ int HeapSelection::findKthSmallest(std::vector<int>& elements, int k) {
     return maxHeap.top();
 }
 
-// Finds the k-th largest element using a min heap
+// Mirrors findKthSmallest but retains the k largest elements through a min-heap.
 int HeapSelection::findKthLargest(std::vector<int>& elements, int k) {
     // min heap to store k largest
     std::priority_queue<int, std::vector<int>, std::greater<int>> minHeap;
@@ -43,7 +43,7 @@ int HeapSelection::findKthLargest(std::vector<int>& elements, int k) {
     return minHeap.top();
 }
 
-// Executes the selection algorithm without displaying
+// Computes the requested statistic without printing anything (benchmark mode).
 void HeapSelection::execute(DataStructure* ds) {
     std::vector<int> elements = ds->getElements();
 
@@ -54,7 +54,7 @@ void HeapSelection::execute(DataStructure* ds) {
     }
 }
 
-// Executes the selection algorithm and displays the result
+// Runs the selection and prints the answer to console.
 void HeapSelection::executeAndDisplay(DataStructure* ds) {
     std::vector<int> elements = ds->getElements();
 
@@ -67,22 +67,22 @@ void HeapSelection::executeAndDisplay(DataStructure* ds) {
     display(elements);
 }
 
-// Returns the name of the algorithm
+// Gives the algorithm's name.
 std::string HeapSelection::getName() const {
     return "Heap Selection";
 }
 
-// Sets whether to find the k-th smallest or largest element
+// Chooses between smallest or largest variants of the search.
 void HeapSelection::setIsSmallest(bool choice) {
     isSmallest = choice;
 }
 
-// Sets the k-th position to find
+// Stores the user-provided value of k.
 void HeapSelection::setK(int k) {
     this->k = k;
 }
 
-// Retrieves the most recent selection result
+// Getter for the last computed k-th value.
 int HeapSelection::getResult() const {
     return result;
 }

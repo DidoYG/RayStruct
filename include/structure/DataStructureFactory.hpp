@@ -9,8 +9,8 @@
 
 class DataStructureFactory {
 public:
-    // Factory method to create data structure instances based on the provided enum type
-    // For CUSTOM type, a customLibraryPath must be provided.
+    // Creates built-in data structures or custom ones when CUSTOM is requested.
     static DataStructure* createDataStructure(DataStructureEnum type, const std::string& customLibraryPath = "");
+    // Clears all dynamically loaded custom data structure libraries.
     static void cleanupCustomLibraries();
 };

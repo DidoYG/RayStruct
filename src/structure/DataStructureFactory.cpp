@@ -59,7 +59,7 @@ DataStructure* DataStructureFactory::createDataStructure(DataStructureEnum type,
             }
 
             {
-                // Check if already loaded
+                // Checks if already loaded
                 auto& libraries = customDSLibraries();
                 auto it = libraries.find(customLibraryPath);
                 if (it == libraries.end()) {
@@ -110,7 +110,7 @@ DataStructure* DataStructureFactory::createDataStructure(DataStructureEnum type,
     }
 }
 
-// Cleanup method to unload custom libraries and delete owned files
+// Method to clear custom libraries and delete owned files
 void DataStructureFactory::cleanupCustomLibraries() {
     auto& libraries = customDSLibraries();
 

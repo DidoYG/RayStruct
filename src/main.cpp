@@ -3,7 +3,7 @@
 #include "../include/manager/InputManager.hpp"
 #include "../include/manager/BenchmarkManager.hpp"
 
-// Function to clear the console screen
+// Clears the terminal so repeated runs start with a clean header.
 void clearConsole() {
 #ifdef _WIN32
     std::system("cls");
@@ -12,7 +12,7 @@ void clearConsole() {
 #endif
 }
 
-// Entry point of the application
+// The main method that coordinates structure/algorithm selection, parameter prompts, and benchmarking.
 int main() {
     bool shouldExit = false;
 
@@ -299,7 +299,7 @@ int main() {
                 benchmarkManager.runBenchmark(ds, algo);
             }
 
-            // Display operations/results if applicable
+            // Display operations or results if applicable
             if (algorithmSelection.selectedAlgorithm != AlgorithmEnum::HEAP_SELECTION && algorithmSelection.selectedAlgorithm != AlgorithmEnum::A_STAR && algorithmSelection.selectedAlgorithm != AlgorithmEnum::PRIMS) {
                 if (ds && algo && ds->getElements().size() <= 10) {
                     std::cout << "\nOperations: " << std::endl;

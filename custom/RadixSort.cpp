@@ -5,12 +5,13 @@
 
 class RadixSort : public Algorithm {
 public:
+    // Runs the radix sort silently so benchmarks only capture timing.
     void execute(DataStructure* ds) override {
         auto elements = ds->getElements();
         radixSort(elements);
-        // optionally write the sorted values back if the host expects mutation
     }
 
+    // Provides before/after visualization of the radix sort.
     void executeAndDisplay(DataStructure* ds) override {
         auto elements = ds->getElements();
         std::cout << "Before sorting: ";
@@ -20,6 +21,7 @@ public:
         display(elements);
     }
 
+    // Prints elements in a single line for readability.
     void display(const std::vector<int>& elements) override {
         for (int num : elements) {
             std::cout << num << ' ';
@@ -27,11 +29,13 @@ public:
         std::cout << std::endl;
     }
 
+    // Prints the algorithm's name after being called by the benchmarking method.
     std::string getName() const override {
         return "Radix Sort";
     }
 
 private:
+    // Executes LSD radix sort by iterating through decimal digit positions.
     void radixSort(std::vector<int>& arr) {
         if (arr.empty()) return;
         int maxVal = *std::max_element(arr.begin(), arr.end());
@@ -40,6 +44,7 @@ private:
         }
     }
 
+    // Stable counting sort used for each digit pass of radix sort.
     void countingSort(std::vector<int>& arr, int exp) {
         const int n = static_cast<int>(arr.size());
         std::vector<int> output(n);
@@ -63,6 +68,7 @@ private:
 };
 
 // Exported factory entry point expected by AlgorithmFactory
+// Allows RayStruct++ to instantiate this custom algorithm via dlopen.
 extern "C" Algorithm* createAlgorithm() {
     return new RadixSort();
 }
