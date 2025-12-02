@@ -1,6 +1,11 @@
 // src/Algorithm/AlgorithmFactory.cpp
 #include "../../include/algorithm/AlgorithmFactory.hpp"
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#else
 #include <dlfcn.h>
+#endif
 #include <filesystem>
 #include <iostream>
 #include <unordered_map>
@@ -8,9 +13,93 @@
 
 // Namespace for internal linkage
 namespace {
+// Platform specific shared library helpers
+#ifdef _WIN32
+using LibraryHandle = HMODULE;
+
+std::string windowsErrorMessage() {
+    DWORD errorMessageID = ::GetLastError();
+    if (errorMessageID == 0) {
+        return "Unknown error";
+    }
+
+    LPSTR messageBuffer = nullptr;
+    size_t size = FormatMessageA(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+        nullptr, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        reinterpret_cast<LPSTR>(&messageBuffer), 0, nullptr);
+
+    std::string message = "Unknown error";
+    if (size && messageBuffer) {
+        message.assign(messageBuffer, size);
+        while (!message.empty() && (message.back() == '\r' || message.back() == '\n')) {
+            message.pop_back();
+        }
+    }
+
+    if (messageBuffer) {
+        LocalFree(messageBuffer);
+    }
+
+    return message;
+}
+#else
+using LibraryHandle = void*;
+#endif
+
+LibraryHandle openLibrary(const std::string& path, std::string& error) {
+    error.clear();
+#ifdef _WIN32
+    LibraryHandle handle = LoadLibraryA(path.c_str());
+    if (!handle) {
+        error = windowsErrorMessage();
+    }
+    return handle;
+#else
+    LibraryHandle handle = dlopen(path.c_str(), RTLD_NOW | RTLD_GLOBAL);
+    if (!handle) {
+        const char* err = dlerror();
+        error = err ? err : "Unknown error";
+    }
+    return handle;
+#endif
+}
+
+void* loadSymbol(LibraryHandle handle, const char* name, std::string& error) {
+    error.clear();
+#ifdef _WIN32
+    FARPROC symbol = GetProcAddress(handle, name);
+    if (!symbol) {
+        error = windowsErrorMessage();
+        return nullptr;
+    }
+    return reinterpret_cast<void*>(symbol);
+#else
+    dlerror(); // clear any existing error state
+    void* symbol = dlsym(handle, name);
+    const char* err = dlerror();
+    if (err != nullptr) {
+        error = err;
+        return nullptr;
+    }
+    return symbol;
+#endif
+}
+
+void closeLibrary(LibraryHandle handle) {
+    if (!handle) {
+        return;
+    }
+#ifdef _WIN32
+    FreeLibrary(handle);
+#else
+    dlclose(handle);
+#endif
+}
+
 // Structure to hold information about loaded custom libraries
 struct CustomLibraryInfo {
-    void* handle = nullptr;
+    LibraryHandle handle = nullptr;
     using CreateFn = Algorithm* (*)();
     CreateFn create = nullptr;
     bool ownsFile = false;
@@ -29,12 +118,14 @@ bool shouldOwnLibraryFile(const std::string& pathStr) {
     if (!std::filesystem::exists(path, ec)) {
         return false;
     }
-    if (path.extension() != ".so") {
+
+    const std::string extension = path.extension().string();
+    if (extension != ".so" && extension != ".dll") {
         return false;
     }
 
     auto filename = path.filename().string();
-    if (filename.find("_custom.so") == std::string::npos) {
+    if (filename.find(std::string("_custom") + extension) == std::string::npos) {
         return false;
     }
 
@@ -71,21 +162,22 @@ Algorithm* AlgorithmFactory::createAlgorithm(AlgorithmEnum type, const std::stri
                 if (it == libraries.end()) {
                     // Load the shared library
                     CustomLibraryInfo info;
-                    info.handle = dlopen(customLibraryPath.c_str(), RTLD_NOW | RTLD_GLOBAL);
+                    std::string loadError;
+                    info.handle = openLibrary(customLibraryPath, loadError);
                     if (!info.handle) {
-                        std::cerr << "dlopen failed for '" << customLibraryPath << "': " << dlerror() << std::endl;
+                        std::cerr << "Failed to load custom algorithm library '"
+                                  << customLibraryPath << "': " << loadError << std::endl;
                         return nullptr;
                     }
 
                     // Locate the factory function symbol
-                    dlerror(); // clear any existing error state
-
-                    // Assume the factory function is named "createAlgorithm"
-                    info.create = reinterpret_cast<CustomLibraryInfo::CreateFn>(dlsym(info.handle, "createAlgorithm"));
-                    const char* symbolError = dlerror();
-                    if (symbolError != nullptr) {
-                        std::cerr << "dlsym failed to locate createAlgorithm in '" << customLibraryPath << "': " << symbolError << std::endl;
-                        dlclose(info.handle);
+                    std::string symbolError;
+                    info.create = reinterpret_cast<CustomLibraryInfo::CreateFn>(
+                        loadSymbol(info.handle, "createAlgorithm", symbolError));
+                    if (!info.create) {
+                        std::cerr << "Failed to locate createAlgorithm in '" << customLibraryPath
+                                  << "': " << symbolError << std::endl;
+                        closeLibrary(info.handle);
                         return nullptr;
                     }
                     
@@ -126,7 +218,7 @@ void AlgorithmFactory::cleanupCustomLibraries() {
 
         // Close the library handle
         if (info.handle) {
-            dlclose(info.handle);
+            closeLibrary(info.handle);
             info.handle = nullptr;
         }
 
